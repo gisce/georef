@@ -2,10 +2,11 @@
 """Actualització dels CINIS donat un fitxer ID;CINI
 """
 from datetime import datetime
-from loop import OOOP
 import codecs
 import multiprocessing
 import sys
+
+from georef.loop import OOOP
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 

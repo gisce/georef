@@ -1,0 +1,7 @@
+setup.py
+bin/georef_cini.py
+bin/georef_cts.py
+bin/georef_lat.py
+bin/georef_lbt.py
+georef/__init__.py
+georef/loop.py

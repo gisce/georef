@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Georeferenciaci de línies BT.
+"""Georeferenciaci de línies.
 FORMULARIO 5: “Información relativa a la topología y atributos de las líneas 
 aéreas y cables subterráneos reales existentes a 31 de diciembre de 2010”
 """
@@ -8,7 +8,8 @@ import codecs
 import multiprocessing
 import pprint
 from datetime import datetime
-from loop import OOOP
+
+from georef.loop import OOOP
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
@@ -24,37 +25,21 @@ def consumer(input_q, output_q):
     codi_r1 = sys.argv[5][-3:]
     while True:
         item = input_q.get()
-        linia = O.GiscedataBtElement.get(item)
-        res = O.GiscegisEdge.search([('id_linktemplate', '=', linia.name),
-                                     ('layer', 'ilike', '%BT%')])
-        if not res:
-            sys.stderr.write("**** ERROR: l'element %s (id:%s) no està en "
-                             "giscegis_edges.\n" % (linia.name, linia.id))
-            sys.stderr.flush()
-            edge = {'start_node': (0, '%s_0' % linia.name),
-                'end_node': (0, '%s_1' % linia.name)}
-        elif len(res) > 1:
-            sys.stderr.write("**** ERROR: l'element %s (id:%s) està més d'una "
-                             "vegada a giscegis_edges. %s\n" %
-                             (linia.name, linia.id, res))
-            sys.stderr.flush()
-            edge = {'start_node': (0, '%s_0' % linia.name),
-                'end_node': (0, '%s_1' % linia.name)}
-        else:
-            edge = O.GiscegisEdge.read(res[0], ['start_node', 'end_node'])
-        
-        output_q.put([
-            'R1-%s' % codi_r1.zfill(3),
-            linia.name,
-            edge['start_node'][1],
-            edge['end_node'][1],
-            linia.cable.tipus.codi,
-            linia.voltatge,
-            1,
-            int(round(linia.longitud_cad)) or 1,
-            linia.cini or '',
-        ])
+        linia = O.GiscedataAtLinia.get(item)
+        for tram in linia.trams:
+            output_q.put([
+                'R1-%s' % codi_r1.zfill(3),
+                '%s-%s' % (linia.name, tram.name),
+                tram.origen and tram.origen[:20] or '',
+                tram.final and tram.final[:20] or '',
+                tram.cable.tipus.codi,
+                linia.tensio,
+                tram.circuits or 1,
+                int(round(tram.longitud_cad)) or 1,
+                tram.cini or '',
+            ])
         input_q.task_done()
+        
 
 def main():
     """Funció principal del programa.
@@ -70,10 +55,8 @@ def main():
         sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
     sys.stderr.flush()
     sequence = []
-    search_params = [('baixa', '!=', 0),
-                     ('baixa', '!=', False),
-                     ('cable.tipus.codi', 'not in', ('E', 'I'))]
-    sequence += O.GiscedataBtElement.search(search_params)
+    search_params = [('name', '!=', '1')]
+    sequence += O.GiscedataAtLinia.search(search_params)
     sys.stderr.write("Filtres utilitzats:\n")
     pprint.pprint(search_params, sys.stderr)
     sys.stderr.write("S'han trobat %s línies. Correcte? " % len(sequence))

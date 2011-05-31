@@ -9,7 +9,8 @@ import multiprocessing
 import pprint
 import re
 from datetime import datetime
-from loop import OOOP
+
+from georef.loop import OOOP
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 

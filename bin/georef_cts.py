@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Georeferenciaci de CTS.
 FORMULARIO 4: “Información relativa a la configuración y el equipamiento de los 

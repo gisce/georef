@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Actualització dels CINIS donat un fitxer ID;CINI
 """

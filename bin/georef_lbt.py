@@ -61,6 +61,11 @@ def consumer(input_q, output_q):
 def main():
     """Funció principal del programa.
     """
+    sys.stderr.write("Has executat la consulta SQL:\n")
+    sys.stderr.write("UPDATE giscedata_bt_element SET baixa = False "
+                     "where baixa is null;\n")
+    sys.stderr.write("Quan l'hagis executat prem INTRO. ")
+    raw_input()
     start = datetime.now()
     q = multiprocessing.JoinableQueue()
     q2 = multiprocessing.Queue()
@@ -72,8 +77,7 @@ def main():
         sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
     sys.stderr.flush()
     sequence = []
-    search_params = ['|', ('baixa', '=', 0),
-                          ('baixa', '=', False),
+    search_params = [('baixa', '=', 0),
                      ('cable.tipus.codi', 'not in', ('E', 'I'))]
     sequence += O.GiscedataBtElement.search(search_params)
     sys.stderr.write("Filtres utilitzats:\n")

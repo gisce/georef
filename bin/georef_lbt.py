@@ -72,8 +72,8 @@ def main():
         sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
     sys.stderr.flush()
     sequence = []
-    search_params = [('baixa', '!=', 0),
-                     ('baixa', '!=', False),
+    search_params = ['|', ('baixa', '=', 0),
+                          ('baixa', '=', False),
                      ('cable.tipus.codi', 'not in', ('E', 'I'))]
     sequence += O.GiscedataBtElement.search(search_params)
     sys.stderr.write("Filtres utilitzats:\n")

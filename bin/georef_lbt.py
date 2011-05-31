@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Georeferenciaci de línies BT.
 FORMULARIO 5: “Información relativa a la topología y atributos de las líneas 

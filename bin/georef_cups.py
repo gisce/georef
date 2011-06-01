@@ -56,50 +56,50 @@ def consumer(input_q, output_q):
             res.append('')
             res.append('MEC')
 
-            if cups and cups['id_escomesa']:
-                search_params = [('escomesa', '=', cups['id_escomesa'][0])]
-                bloc_escomesa_id = O.GiscegisBlocsEscomeses.search(search_params)
-                if bloc_escomesa_id:
-                    bloc_escomesa = O.GiscegisBlocsEscomeses.read(
-                                            bloc_escomesa_id[0], ['node', 'vertex'])
-                    if bloc_escomesa['vertex']:
-                        vertex = O.GiscegisVertex.read(bloc_escomesa['vertex'][0],
-                                                       ['x', 'y'])
-                        res.append(vertex['x'])
-                        res.append(vertex['y'])
-                    else:
-                        res.extend([''] * 2)
-                    if bloc_escomesa['node']:
-                        search_params = [('start_node', '=', 
+        if cups and cups['id_escomesa']:
+            search_params = [('escomesa', '=', cups['id_escomesa'][0])]
+            bloc_escomesa_id = O.GiscegisBlocsEscomeses.search(search_params)
+            if bloc_escomesa_id:
+                bloc_escomesa = O.GiscegisBlocsEscomeses.read(
+                                        bloc_escomesa_id[0], ['node', 'vertex'])
+                if bloc_escomesa['vertex']:
+                    vertex = O.GiscegisVertex.read(bloc_escomesa['vertex'][0],
+                                                   ['x', 'y'])
+                    res.append(vertex['x'])
+                    res.append(vertex['y'])
+                else:
+                    res.extend([''] * 2)
+                if bloc_escomesa['node']:
+                    search_params = [('start_node', '=',
+                                      bloc_escomesa['node'][0])]
+                    edge_id = O.GiscegisEdge.search(search_params)
+                    if not edge_id:
+                        search_params = [('end_node', '=',
                                           bloc_escomesa['node'][0])]
                         edge_id = O.GiscegisEdge.search(search_params)
-                        if not edge_id:
-                            search_params = [('end_node', '=',
-                                              bloc_escomesa['node'][0])]
-                            edge_id = O.GiscegisEdge.search(search_params)
-                        if edge_id:
-                            edge = O.GiscegisEdge.read(edge_id[0])
-                            search_params = [('id', '=', edge['id_linktemplate'])]
-                            bt_id = O.GiscedataBtElement.search(search_params)
-                            if bt_id:
-                                bt = O.GiscedataBtElement.read(bt_id[0],
-                                                                    ['tipus_linia'])
-                                if bt['tipus_linia']:
-                                    res.append(bt['tipus_linia'][1][0])
-                                else:
-                                    res.append('')
-            else:
-                res.extend([''] * 3)
+                    if edge_id:
+                        edge = O.GiscegisEdge.read(edge_id[0])
+                        search_params = [('id', '=', edge['id_linktemplate'])]
+                        bt_id = O.GiscedataBtElement.search(search_params)
+                        if bt_id:
+                            bt = O.GiscedataBtElement.read(bt_id[0],
+                                                                ['tipus_linia'])
+                            if bt['tipus_linia']:
+                                res.append(bt['tipus_linia'][1][0])
+                            else:
+                                res.append('')
+        else:
+            res.extend([''] * 3)
 
-            search_params = [('cups', '=', cups['id'])]
-            polissa_id = O.GiscedataPolissa.search(search_params)
-            if polissa_id:
-                polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'])
-                res.extend([polissa['potencia']] * 2)
-            else:
-                res.extend([''] * 2)
-            output_q.put(res)
-            input_q.task_done()
+        search_params = [('cups', '=', cups['id'])]
+        polissa_id = O.GiscedataPolissa.search(search_params)
+        if polissa_id:
+            polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'])
+            res.extend([polissa['potencia']] * 2)
+        else:
+            res.extend([''] * 2)
+        output_q.put(res)
+        input_q.task_done()
             
 
 def main():

@@ -112,7 +112,8 @@ def main():
     for proc in processes:
         proc.daemon = True
         proc.start()
-        print "^Starting process PID: %s" % proc.pid
+        sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
+    sys.stderr.flush()
     sequence = []
     search_params = []
     sequence += O.GiscedataCupsPs.search(search_params)
@@ -122,7 +123,6 @@ def main():
     producer(sequence, q)
     q.join() 
     sys.stderr.write("Time Elapsed: %s" % (datetime.now() - start))
-    sys.stderr.write("-" * 80)
     sys.stderr.flush()
     while not q2.empty():
         msg = q2.get()

@@ -28,6 +28,8 @@ def consumer(input_q, output_q):
         item = input_q.get()
         linia = O.GiscedataAtLinia.get(item)
         for tram in linia.trams:
+            if tram.baixa:
+                continue
             output_q.put([
                 'R1-%s' % codi_r1.zfill(3),
                 '%s-%s' % (linia.name, tram.name),
@@ -63,6 +65,21 @@ def main():
     sys.stderr.write("S'han trobat %s línies. Correcte? " % len(sequence))
     sys.stderr.flush()
     raw_input()
+    search_params = [('active', '=', 1),
+                     ('baixa', '=', 1)]
+    trams_indef = O.GiscedataAtTram.search(search_params)
+    if trams_indef:
+        long_cad = 0
+        for tram in O.GiscedataAtTram.read(trams_indef, ['longitud_cad']):
+            long_cad += tram['longitud_cad']
+        sys.stderr.write("*** ATENCIÓ ***\n")
+        sys.stderr.write("S'han trobat %i trams que estan actius i de baixa al "
+                         "mateix temps. Sumen %f m.\n" % (len(trams_indef),
+                                                          long_cad))
+        sys.stderr.write("Si estan marcats com a baixa, no s'inclouran en "
+                         "l'informe. Continuar igualment? ")
+        sys.stderr.flush()
+        raw_input()
     producer(sequence, q)
     q.join() 
     sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))

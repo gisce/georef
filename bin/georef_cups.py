@@ -53,7 +53,7 @@ def consumer(input_q, output_q):
         else:
             res.append('')
             res.append('')
-            res.append('MEC')
+        res.append('MEC')
 
         if cups and cups['id_escomesa']:
             search_params = [('escomesa', '=', cups['id_escomesa'][0])]

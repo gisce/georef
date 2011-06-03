@@ -67,7 +67,7 @@ def consumer(input_q, output_q):
                     res.append(vertex['x'])
                     res.append(vertex['y'])
                 else:
-                    res.extend([''] * 2)
+                    res.extend([''] * 2)  # no vertex
                 if bloc_escomesa['node']:
                     search_params = [('start_node', '=',
                                       bloc_escomesa['node'][0])]
@@ -86,7 +86,13 @@ def consumer(input_q, output_q):
                             if bt['tipus_linia']:
                                 res.append(bt['tipus_linia'][1][0])
                             else:
-                                res.append('')
+                                res.append('')  # no tipus_linia
+                        else:
+                            res.append('')  # no bt_id
+                    else:
+                        res.append('')  # no edge_id
+                else:
+                    res.append('')  # no node
         else:
             res.extend([''] * 3)
 

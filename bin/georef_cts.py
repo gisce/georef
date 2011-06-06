@@ -33,6 +33,8 @@ def consumer(input_q, output_q):
     ct_nodes = {}
     ct_vertex = {}
     for ct in O.GiscegisBlocsCtat.read(ctat_ids, ['ct', 'node', 'vertex']):
+        if not ct['ct']:
+            continue
         if ct['node']:
             ct_nodes[ct['ct'][0]] = ct['node'][1]
         if ct['vertex']:

@@ -75,7 +75,7 @@ def consumer(input_q, output_q):
             vertex[1],
             node,
             ct.id_municipi.state.code,
-            ct.id_municipi.ine[-3:],
+            ct.id_municipi.ine[2:],
             ct.id_subtipus.categoria_cne.codi,
             ct.tensio_p or 0,
             ct.potencia,

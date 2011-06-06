@@ -33,9 +33,11 @@ def consumer(input_q, output_q):
     ct_nodes = {}
     ct_vertex = {}
     for ct in O.GiscegisBlocsCtat.read(ctat_ids, ['ct', 'node', 'vertex']):
-        ct_nodes[ct['ct'][0]] = ct['node'][1]
-        v = O.GiscegisVertex.read(ct['vertex'][0], ['x', 'y'])
-        ct_vertex[ct['ct'][0]] = (v['x'], v['y'])
+        if ct['node']:
+            ct_nodes[ct['ct'][0]] = ct['node'][1]
+        if ct['vertex']:
+            v = O.GiscegisVertex.read(ct['vertex'][0], ['x', 'y'])
+            ct_vertex[ct['ct'][0]] = (v['x'], v['y'])
     while True:
         item = input_q.get()
         ct = O.GiscedataCts.get(item)

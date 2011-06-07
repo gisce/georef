@@ -34,7 +34,7 @@ def producer(sequence, output_q):
 def consumer(input_q, output_q):
     """Fem l'informe.
     """
-    codi_r1 = 'R1-%s' % sys.argv[5][-3:]
+    o_codi_r1 = 'R1-%s' % sys.argv[5][-3:]
     while True:
         item = input_q.get()
         cups = O.GiscedataCupsPs.read(item, ['name', 'id_escomesa', 
@@ -42,20 +42,19 @@ def consumer(input_q, output_q):
         if not cups:
             input_q.task_done()
             continue
-        res = []
-        res.append(codi_r1)
-        res.append(cups['name'])
+        o_name = cups['name']
+        o_codi_ine = ''
         if cups['id_municipi']:
             municipi = O.ResMunicipi.read(cups['id_municipi'][0], ['ine', 'state'])
             ine = municipi['ine']
             provincia = O.ResCountryState.read(municipi['state'][0], ['code'])
-            res.append(provincia['code'])
-            res.append(ine[2:])
-        else:
-            res.append('')
-            res.append('')
-        res.append('MEC')
+            o_codi_prov = provincia['code']
+            o_codi_ine = ine[2:]
 
+        o_equip = 'MEC'
+        o_utmx = ''
+        o_utmy = ''
+        o_linia = ''
         if cups and cups['id_escomesa']:
             search_params = [('escomesa', '=', cups['id_escomesa'][0])]
             bloc_escomesa_id = O.GiscegisBlocsEscomeses.search(search_params)
@@ -65,11 +64,9 @@ def consumer(input_q, output_q):
                 if bloc_escomesa['vertex']:
                     vertex = O.GiscegisVertex.read(bloc_escomesa['vertex'][0],
                                                    ['x', 'y'])
-                    res.insert(2,round(vertex['x'],3))
-                    res.insert(3,round(vertex['y'],3))
-                else:
-                    res.insert(2,'') # no vertex
-                    res.insert(3,'')
+                    o_utmx = round(vertex['x'], 3)
+                    o_utmy = round(vertex['y'], 3)
+                
                 if bloc_escomesa['node']:
                     search_params = [('start_node', '=',
                                       bloc_escomesa['node'][0])]
@@ -86,26 +83,26 @@ def consumer(input_q, output_q):
                             bt = O.GiscedataBtElement.read(bt_id[0],
                                                                 ['tipus_linia'])
                             if bt['tipus_linia']:
-                                res.append(bt['tipus_linia'][1][0])
-                            else:
-                                res.append('')  # no tipus_linia
-                        else:
-                            res.append('')  # no bt_id
-                    else:
-                        res.append('')  # no edge_id
-                else:
-                    res.append('')  # no node
-        else:
-            res.extend([''] * 3)
+                                o_linia=bt['tipus_linia'][1][0]
 
         search_params = [('cups', '=', cups['id'])]
         polissa_id = O.GiscedataPolissa.search(search_params)
+        o_potencia = ''
         if polissa_id:
             polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'])
-            res.extend([polissa['potencia']] * 2)
-        else:
-            res.extend([''] * 2)
-        output_q.put(res)
+            o_potencia = polissa['potencia']
+        output_q.put([
+           o_codi_r1,
+           o_name,
+           o_utmx,
+           o_utmy,
+           o_codi_prov,
+           o_codi_ine,
+           o_equip,
+           o_linia,
+           o_potencia,
+           o_potencia
+        ])
         input_q.task_done()
             
 

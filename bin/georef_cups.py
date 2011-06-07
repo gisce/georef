@@ -65,10 +65,11 @@ def consumer(input_q, output_q):
                 if bloc_escomesa['vertex']:
                     vertex = O.GiscegisVertex.read(bloc_escomesa['vertex'][0],
                                                    ['x', 'y'])
-                    res.append(vertex['x'])
-                    res.append(vertex['y'])
+                    res.insert(2,round(vertex['x'],3))
+                    res.insert(3,round(vertex['y'],3))
                 else:
-                    res.extend([''] * 2)  # no vertex
+                    res.insert(2,'') # no vertex
+                    res.insert(3,'')
                 if bloc_escomesa['node']:
                     search_params = [('start_node', '=',
                                       bloc_escomesa['node'][0])]

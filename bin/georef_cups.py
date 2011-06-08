@@ -49,6 +49,7 @@ def consumer(input_q, output_q, progress_q):
             continue
         o_name = cups['name']
         o_codi_ine = ''
+        o_codi_prov = ''
         if cups['id_municipi']:
             municipi = O.ResMunicipi.read(cups['id_municipi'][0], ['ine', 'state'])
             ine = municipi['ine']

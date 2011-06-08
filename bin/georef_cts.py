@@ -9,13 +9,15 @@ import codecs
 import multiprocessing
 import pprint
 import re
+import os
 from datetime import datetime
 
 from georef.loop import OOOP
 from progressbar import ProgressBar, ETA, Percentage, Bar
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
-
+N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
+             multiprocessing.cpu_count())
 
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
@@ -140,7 +142,7 @@ def main():
     q2 = multiprocessing.Queue()
     q3 = multiprocessing.Queue()
     processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3))
-                 for x in range(0, multiprocessing.cpu_count())]
+                 for x in range(0, N_PROC)]
     processes += [multiprocessing.Process(target=progress,
                                           args=(len(sequence), q3))]
     for proc in processes:

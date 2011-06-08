@@ -5,6 +5,7 @@ FORMULARIO 5: “Información relativa a la topología y atributos de las línea
 aéreas y cables subterráneos reales existentes a 31 de diciembre de 2010”
 """
 import sys
+import os
 import codecs
 import multiprocessing
 import pprint
@@ -14,6 +15,8 @@ from georef.loop import OOOP
 from progressbar import ProgressBar, ETA, Percentage, Bar
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
+N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
+             multiprocessing.cpu_count())
 
 
 def producer(sequence, output_q):
@@ -98,7 +101,7 @@ def main():
     q2 = multiprocessing.Queue()
     q3 = multiprocessing.Queue()
     processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3))
-                 for x in range(0, multiprocessing.cpu_count())]
+                 for x in range(0, N_PROC)]
     processes += [multiprocessing.Process(target=progress,
                                           args=(len(sequence), q3))]
     for proc in processes:

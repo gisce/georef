@@ -31,7 +31,7 @@ class Clean(_clean):
             print "Cleaning %s dir" % self.build_base
             shutil.rmtree(self.build_base)
 
-INSTALL_REQUIRES = []
+INSTALL_REQUIRES = ['progressbar']
 if sys.version_info[1] < 6:
     INSTALL_REQUIRES += ['multiprocessing']
 

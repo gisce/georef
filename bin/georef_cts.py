@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Georeferenciaci de CTS.
-FORMULARIO 4: “Información relativa a la configuración y el equipamiento de los 
+FORMULARIO 4: “Información relativa a la configuración y el equipamiento de los
 centros de transformación reales existentes a 31 de diciembre de 2010”
 """
 import sys
@@ -16,6 +16,7 @@ from progressbar import ProgressBar, ETA, Percentage, Bar
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
+
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
     """
@@ -29,9 +30,9 @@ def consumer(input_q, output_q, progress_q):
     codi_r1 = sys.argv[5][-3:]
     ctat_ids = O.GiscegisBlocsCtat.search([])
     search_params = [('blockname.name', 'in', ('SEC_C', 'SEC_B'))]
-    su_ids = O.GiscegisBlocsSeccionadorunifilar.search(search_params)
+    s_ids = O.GiscegisBlocsSeccionadorunifilar.search(search_params)
     codis = [x['codi']
-             for x in O.GiscegisBlocsSeccionadorunifilar.read(su_ids, ['codi'])]
+             for x in O.GiscegisBlocsSeccionadorunifilar.read(s_ids, ['codi'])]
     ct_nodes = {}
     ct_vertex = {}
     for ct in O.GiscegisBlocsCtat.read(ctat_ids, ['ct', 'node', 'vertex']):
@@ -119,6 +120,7 @@ def check_module_cne_installed():
         return False
     return True
 
+
 def main():
     """Funció principal del programa.
     """
@@ -147,14 +149,14 @@ def main():
         sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
     sys.stderr.flush()
     producer(sequence, q)
-    q.join() 
+    q.join()
     sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
     sys.stderr.flush()
     while not q2.empty():
         msg = q2.get()
         msg = map(unicode, msg)
         sys.stdout.write('%s\n' % ';'.join(msg))
-    
+
 if __name__ == '__main__':
     try:
         dbname = sys.argv[1]

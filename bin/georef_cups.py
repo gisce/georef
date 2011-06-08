@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Georeferenciació de la demanda.
 
-FORMULARIO 7: 
+FORMULARIO 7:
 Información relativa a la georreferenciación de la demanda salvo suministros a distribuidores
 
 codigo empresa
@@ -25,11 +25,13 @@ from georef.loop import OOOP
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
+
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
     """
     for item in sequence:
         output_q.put(item)
+
 
 def consumer(input_q, output_q):
     """Fem l'informe.
@@ -37,7 +39,7 @@ def consumer(input_q, output_q):
     o_codi_r1 = 'R1-%s' % sys.argv[5][-3:]
     while True:
         item = input_q.get()
-        cups = O.GiscedataCupsPs.read(item, ['name', 'id_escomesa', 
+        cups = O.GiscedataCupsPs.read(item, ['name', 'id_escomesa',
                                              'id_municipi'])
         if not cups:
             input_q.task_done()
@@ -66,7 +68,6 @@ def consumer(input_q, output_q):
                                                    ['x', 'y'])
                     o_utmx = round(vertex['x'], 3)
                     o_utmy = round(vertex['y'], 3)
-                
                 if bloc_escomesa['node']:
                     search_params = [('start_node', '=',
                                       bloc_escomesa['node'][0])]
@@ -83,7 +84,7 @@ def consumer(input_q, output_q):
                             bt = O.GiscedataBtElement.read(bt_id[0],
                                                                 ['tipus_linia'])
                             if bt['tipus_linia']:
-                                o_linia=bt['tipus_linia'][1][0]
+                                o_linia = bt['tipus_linia'][1][0]
 
         search_params = [('cups', '=', cups['id'])]
         polissa_id = O.GiscedataPolissa.search(search_params)
@@ -104,7 +105,7 @@ def consumer(input_q, output_q):
            o_potencia
         ])
         input_q.task_done()
-            
+
 
 def main():
     """Funció principal del programa.
@@ -126,21 +127,20 @@ def main():
     sys.stderr.flush()
     raw_input()
     producer(sequence, q)
-    q.join() 
+    q.join()
     sys.stderr.write("Time Elapsed: %s" % (datetime.now() - start))
     sys.stderr.flush()
     while not q2.empty():
         msg = q2.get()
         msg = map(unicode, msg)
         sys.stdout.write('%s\n' % ';'.join(msg))
-    
+
 if __name__ == '__main__':
     try:
         dbname = sys.argv[1]
         port = int(sys.argv[2])
         user = sys.argv[3]
         pwd = sys.argv[4]
-        
         O = OOOP(dbname=dbname, port=port, user=user, pwd=pwd)
         main()
     except KeyboardInterrupt:

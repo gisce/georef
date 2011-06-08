@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Georeferenciaci de línies.
-FORMULARIO 5: “Información relativa a la topología y atributos de las líneas 
+FORMULARIO 5: “Información relativa a la topología y atributos de las líneas
 aéreas y cables subterráneos reales existentes a 31 de diciembre de 2010”
 """
 import sys
@@ -14,11 +14,13 @@ from georef.loop import OOOP
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
+
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
     """
     for item in sequence:
         output_q.put(item)
+
 
 def consumer(input_q, output_q):
     """Fem l'informe.
@@ -42,7 +44,7 @@ def consumer(input_q, output_q):
                 tram.cini or '',
             ])
         input_q.task_done()
-        
+
 
 def main():
     """Funció principal del programa.
@@ -81,14 +83,14 @@ def main():
         sys.stderr.flush()
         raw_input()
     producer(sequence, q)
-    q.join() 
+    q.join()
     sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
     sys.stderr.flush()
     while not q2.empty():
         msg = q2.get()
         msg = map(unicode, msg)
         sys.stdout.write('%s\n' % ';'.join(msg))
-    
+
 if __name__ == '__main__':
     try:
         dbname = sys.argv[1]

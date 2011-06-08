@@ -11,11 +11,13 @@ from georef.loop import OOOP
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
+
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
     """
     for item in sequence:
         output_q.put(item)
+
 
 def consumer(input_q):
     """Fem l'informe.
@@ -27,7 +29,7 @@ def consumer(input_q):
         model_id, cini = item.split(';')
         proxy.write([int(model_id)], {'cini': cini})
         input_q.task_done()
-        
+
 
 def main():
     """Funció principal del programa.
@@ -45,10 +47,10 @@ def main():
     sequence = cinis_file.readlines()
     cinis_file.close()
     producer(sequence, q)
-    q.join() 
+    q.join()
     sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
     sys.stderr.flush()
-    
+
 if __name__ == '__main__':
     try:
         dbname = sys.argv[1]

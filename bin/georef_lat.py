@@ -11,6 +11,7 @@ import pprint
 from datetime import datetime
 
 from georef.loop import OOOP
+from progressbar import ProgressBar, ETA, Percentage, Bar
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
@@ -22,12 +23,13 @@ def producer(sequence, output_q):
         output_q.put(item)
 
 
-def consumer(input_q, output_q):
+def consumer(input_q, output_q, progress_q):
     """Fem l'informe.
     """
     codi_r1 = sys.argv[5][-3:]
     while True:
         item = input_q.get()
+        progress_q.put(item)
         linia = O.GiscedataAtLinia.get(item)
         for tram in linia.trams:
             if tram.baixa:
@@ -46,19 +48,23 @@ def consumer(input_q, output_q):
         input_q.task_done()
 
 
+def progress(total, input_q):
+    """Rendering del progressbar de l'informe.
+    """
+    widgets = ['GeoRef informe: ', Percentage(), ' ', Bar(), ' ', ETA()]
+    pbar = ProgressBar(widgets=widgets, maxval=total).start()
+    done = 0
+    while True:
+        input_q.get()
+        done += 1
+        pbar.update(done)
+        if done >= total:
+            pbar.finish()
+
+
 def main():
     """Funció principal del programa.
     """
-    start = datetime.now()
-    q = multiprocessing.JoinableQueue()
-    q2 = multiprocessing.Queue()
-    processes = [multiprocessing.Process(target=consumer, args=(q, q2))
-                 for x in range(0, multiprocessing.cpu_count())]
-    for proc in processes:
-        proc.daemon = True
-        proc.start()
-        sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
-    sys.stderr.flush()
     sequence = []
     search_params = [('name', '!=', '1')]
     sequence += O.GiscedataAtLinia.search(search_params)
@@ -82,6 +88,19 @@ def main():
                          "l'informe. Continuar igualment? ")
         sys.stderr.flush()
         raw_input()
+    start = datetime.now()
+    q = multiprocessing.JoinableQueue()
+    q2 = multiprocessing.Queue()
+    q3 = multiprocessing.Queue()
+    processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3))
+                 for x in range(0, multiprocessing.cpu_count())]
+    processes += [multiprocessing.Process(target=progress,
+                                          args=(len(sequence), q3))]
+    for proc in processes:
+        proc.daemon = True
+        proc.start()
+        sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
+    sys.stderr.flush()
     producer(sequence, q)
     q.join()
     sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))

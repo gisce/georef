@@ -12,6 +12,7 @@ import re
 from datetime import datetime
 
 from georef.loop import OOOP
+from progressbar import ProgressBar, ETA, Percentage, Bar
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
@@ -23,7 +24,7 @@ def producer(sequence, output_q):
         output_q.put(item)
 
 
-def consumer(input_q, output_q):
+def consumer(input_q, output_q, progress_q):
     """Fem l'informe.
     """
     codi_r1 = sys.argv[5][-3:]
@@ -44,6 +45,7 @@ def consumer(input_q, output_q):
             ct_vertex[ct['ct'][0]] = (v['x'], v['y'])
     while True:
         item = input_q.get()
+        progress_q.put(item)
         ct = O.GiscedataCts.get(item)
         if ct.id not in ct_vertex:
             sys.stderr.write("**** ERROR: El CT %s no té vertex definit\n" %
@@ -92,6 +94,20 @@ def consumer(input_q, output_q):
         input_q.task_done()
 
 
+def progress(total, input_q):
+    """Rendering del progressbar de l'informe.
+    """
+    widgets = ['GeoRef informe: ', Percentage(), ' ', Bar(), ' ', ETA()]
+    pbar = ProgressBar(widgets=widgets, maxval=total).start()
+    done = 0
+    while True:
+        input_q.get()
+        done += 1
+        pbar.update(done)
+        if done >= total:
+            pbar.finish()
+
+
 def check_module_cne_installed():
     """Comprovem que el mòdul de la CNE està instal·lat.
     """
@@ -110,16 +126,6 @@ def main():
     """
     if not check_module_cne_installed():
         sys.exit(1)
-    start = datetime.now()
-    q = multiprocessing.JoinableQueue()
-    q2 = multiprocessing.Queue()
-    processes = [multiprocessing.Process(target=consumer, args=(q, q2))
-                 for x in range(0, multiprocessing.cpu_count())]
-    for proc in processes:
-        proc.daemon = True
-        proc.start()
-        sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
-    sys.stderr.flush()
     sequence = []
     search_params = [('id_installacio.name', '!=', 'SE'),
                      ('id_installacio.name', '!=', 'CH')]
@@ -129,6 +135,19 @@ def main():
     sys.stderr.write("S'han trobat %s CTS. Correcte? " % len(sequence))
     sys.stderr.flush()
     raw_input()
+    start = datetime.now()
+    q = multiprocessing.JoinableQueue()
+    q2 = multiprocessing.Queue()
+    q3 = multiprocessing.Queue()
+    processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3))
+                 for x in range(0, multiprocessing.cpu_count())]
+    processes += [multiprocessing.Process(target=progress,
+                                          args=(len(sequence), q3))]
+    for proc in processes:
+        proc.daemon = True
+        proc.start()
+        sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
+    sys.stderr.flush()
     producer(sequence, q)
     q.join()
     sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))

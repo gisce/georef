@@ -126,7 +126,6 @@ def main():
     """
     if not check_module_cne_installed():
         sys.exit(1)
-    start = datetime.now()
     sequence = []
     search_params = [('id_installacio.name', '!=', 'SE'),
                      ('id_installacio.name', '!=', 'CH')]
@@ -136,6 +135,7 @@ def main():
     sys.stderr.write("S'han trobat %s CTS. Correcte? " % len(sequence))
     sys.stderr.flush()
     raw_input()
+    start = datetime.now()
     q = multiprocessing.JoinableQueue()
     q2 = multiprocessing.Queue()
     q3 = multiprocessing.Queue()

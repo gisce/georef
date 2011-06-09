@@ -51,6 +51,15 @@ def consumer(input_q, output_q, progress_q):
                 'end_node': (0, '%s_1' % linia.name)}
         else:
             edge = O.GiscegisEdge.read(res[0], ['start_node', 'end_node'])
+        if linia.cable and linia.cable.tipus:
+            o_cable_codi = linia.cable.tipus.codi
+            if (o_cable_codi == 'I' and linia.tipus_linia
+                and linia.tipus_linia.name[1] == 'S'):
+                o_cable_codi = 'S'
+        else:
+                sys.stderr.write("**** ERROR: El tram %s no té cable o tipus\n"
+                                 % linia.name)
+                continue
         output_q.put([
             'R1-%s' % codi_r1.zfill(3),
             linia.name,
@@ -89,7 +98,7 @@ def main():
     raw_input()
     sequence = []
     search_params = [('baixa', '=', 0),
-                     ('cable.tipus.codi', 'not in', ('E', 'I'))]
+                     ('cable.tipus.codi', '!=', 'E')]
     sequence += O.GiscedataBtElement.search(search_params)
     sys.stderr.write("Filtres utilitzats:\n")
     pprint.pprint(search_params, sys.stderr)

@@ -32,6 +32,10 @@ def consumer(input_q, output_q, progress_q):
     codi_r1 = sys.argv[5][-3:]
     while True:
         item = input_q.get()
+        if item is None:
+            sys.stderr.write('PID:%s - Token found!\n' % os.getpid())
+            sys.stderr.flush()
+            break
         progress_q.put(item)
         linia = O.GiscedataAtLinia.get(item)
         for tram in linia.trams:
@@ -48,7 +52,6 @@ def consumer(input_q, output_q, progress_q):
                 int(round(tram.longitud_cad)) or 1,
                 tram.cini or '',
             ])
-        input_q.task_done()
 
 
 def progress(total, input_q):
@@ -63,6 +66,7 @@ def progress(total, input_q):
         pbar.update(done)
         if done >= total:
             pbar.finish()
+            break
 
 
 def main():
@@ -92,7 +96,7 @@ def main():
         sys.stderr.flush()
         raw_input()
     start = datetime.now()
-    q = multiprocessing.JoinableQueue()
+    q = multiprocessing.Queue()
     q2 = multiprocessing.Queue()
     q3 = multiprocessing.Queue()
     processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3))
@@ -105,7 +109,13 @@ def main():
         sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
     sys.stderr.flush()
     producer(sequence, q)
-    q.join()
+    # Posem tants tokens com N_PROC tinguem
+    for x in range(0, N_PROC):
+        q.put(None)
+    for proc in reversed(processes):
+        if not proc.is_alive():
+            sys.stderr.write("^Stopping process PID: %s\n" % proc.pid)
+        proc.join()
     sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
     sys.stderr.flush()
     while not q2.empty():

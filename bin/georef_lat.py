@@ -33,20 +33,30 @@ def consumer(input_q, output_q, progress_q):
     while True:
         item = input_q.get()
         if item is None:
-            sys.stderr.write('PID:%s - Token found!\n' % os.getpid())
-            sys.stderr.flush()
-            break
+            os._exit(os.EX_OK)
         progress_q.put(item)
         linia = O.GiscedataAtLinia.get(item)
         for tram in linia.trams:
             if tram.baixa:
+                continue
+            if tram.cable and tram.cable.tipus:
+                o_cable_codi = tram.cable.tipus.codi
+                if o_cable_codi == 'I':
+                    if tram.tipus == 1:
+                        o_cable_codi = 'D'
+                    else:
+                        o_cable_codi = 'S'
+            else:
+                sys.stderr.write("**** ERROR: El tram %s linia %s no té "
+                                 "cable o tipus\n" % (tram.name,
+                                                      linia.name))
                 continue
             output_q.put([
                 'R1-%s' % codi_r1.zfill(3),
                 '%s-%s' % (linia.name, tram.name),
                 tram.origen and tram.origen[:20] or '',
                 tram.final and tram.final[:20] or '',
-                tram.cable.tipus.codi,
+                o_cable_codi,
                 linia.tensio,
                 tram.circuits or 1,
                 int(round(tram.longitud_cad)) or 1,

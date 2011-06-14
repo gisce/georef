@@ -24,6 +24,7 @@ import multiprocessing
 from datetime import datetime
 
 from georef.loop import OOOP
+from georef import get_codi_ine
 from progressbar import ProgressBar, ETA, Percentage, Bar
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
@@ -58,7 +59,7 @@ def consumer(input_q, output_q, progress_q):
             ine = municipi['ine']
             provincia = O.ResCountryState.read(municipi['state'][0], ['code'])
             o_codi_prov = provincia['code']
-            o_codi_ine = ine[2:]
+            o_codi_ine = get_codi_ine(ine)
 
         o_equip = 'MEC'
         o_utmx = ''

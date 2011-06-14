@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 import sys
 
-import loop
-from codis_ine import CODIS_INE
+import georef.loop
+from georef.codis_ine import CODIS_INE
 
 def get_codi_ine(ine):
     """Retorna el codi INE només si el que li passem té 3 caràcters a part de

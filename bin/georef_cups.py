@@ -85,8 +85,9 @@ def consumer(input_q, output_q, progress_q):
                                           bloc_escomesa['node'][0])]
                         edge_id = O.GiscegisEdge.search(search_params)
                     if edge_id:
-                        edge = O.GiscegisEdge.read(edge_id[0])
-                        search_params = [('id', '=', edge['id_linktemplate'])]
+                        edge = O.GiscegisEdge.read(edge_id[0],
+                                                   ['id_linktemplate'])
+                        search_params = [('name', '=', edge['id_linktemplate'])]
                         bt_id = O.GiscedataBtElement.search(search_params)
                         if bt_id:
                             bt = O.GiscedataBtElement.read(bt_id[0],

@@ -13,6 +13,7 @@ import os
 from datetime import datetime
 
 from georef.loop import OOOP
+from georef import get_codi_ine
 from progressbar import ProgressBar, ETA, Percentage, Bar
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
@@ -85,7 +86,7 @@ def consumer(input_q, output_q, progress_q):
             round(vertex[1], 3),
             node,
             ct.id_municipi.state.code,
-            ct.id_municipi.ine[2:],
+            get_codi_ine(ct.id_municipi.ine),
             ct.id_subtipus.categoria_cne.codi,
             ct.tensio_p or 0,
             ct.potencia,

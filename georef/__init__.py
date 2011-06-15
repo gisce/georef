@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
 
-import georef.loop
 from georef.codis_ine import CODIS_INE
 
 def get_codi_ine(ine):

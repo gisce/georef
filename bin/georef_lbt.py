@@ -68,7 +68,7 @@ def consumer(input_q, output_q, progress_q):
             linia.cable.tipus.codi,
             linia.voltatge,
             1,
-            round(linia.longitud_cad / 1000.0, 3) or 1,
+            round(linia.longitud_cad / 1000.0, 3) or 0,
             linia.cini or '',
         ])
         input_q.task_done()

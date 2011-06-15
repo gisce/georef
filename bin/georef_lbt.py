@@ -65,7 +65,7 @@ def consumer(input_q, output_q, progress_q):
             linia.name,
             edge['start_node'][1],
             edge['end_node'][1],
-            linia.cable.tipus.codi,
+            o_cable_codi,
             linia.voltatge,
             1,
             round(linia.longitud_cad / 1000.0, 3) or 0,

@@ -59,6 +59,7 @@ def consumer(input_q, output_q, progress_q):
                 tram.circuits or 1,
                 round(tram.longitud_cad / 1000.0, 3) or 0,
                 tram.cini or '',
+                1,
             ])
         input_q.task_done()
 

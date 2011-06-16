@@ -27,9 +27,13 @@ def consumer(input_q):
     while True:
         item = input_q.get()
         model_id, cini = item.split(';')
-        proxy.write([int(model_id)], {'cini': cini})
+        try:
+            proxy.write([int(model_id)], {'cini': cini})
+        except Exception:
+            sys.stderr.write("Write error: inexistent model %s\n" % model_id)
+            sys.stderr.flush()
         input_q.task_done()
-
+    
 
 def main():
     """Funció principal del programa.

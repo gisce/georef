@@ -55,7 +55,7 @@ def consumer(input_q, output_q, progress_q):
                 tram.origen and tram.origen[:20] or '',
                 tram.final and tram.final[:20] or '',
                 o_cable_codi,
-                linia.tensio,
+                round((linia.tensio or 0) / 1000.0, 3),
                 tram.circuits or 1,
                 round(tram.longitud_cad / 1000.0, 3) or 0,
                 tram.cini or '',

@@ -60,13 +60,14 @@ def consumer(input_q, output_q, progress_q):
                 sys.stderr.write("**** ERROR: El tram %s no té cable o tipus\n"
                                  % linia.name)
                 continue
+        o_voltatge = int(filter(str.isdigit, linia.voltatge or '') or 0)
         output_q.put([
             'R1-%s' % codi_r1.zfill(3),
             linia.name,
             edge['start_node'][1],
             edge['end_node'][1],
             o_cable_codi,
-            linia.voltatge,
+            round(o_voltatge / 1000.0, 3),
             1,
             round(linia.longitud_cad / 1000.0, 3) or 0,
             linia.cini or '',

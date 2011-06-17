@@ -78,6 +78,7 @@ def consumer(input_q, output_q, progress_q):
             regexp = '%s(-{1}.*)$' % filter(lambda x: str(x).isdigit(), ct.name)
             if re.match(regexp, codi):
                 count_sec += 1
+        o_tensio_p = int(filter(str.isdigit, ct.tensio_p or '') or 0)
         output_q.put([
             'R1-%s' % codi_r1.zfill(3),
             ct.name,
@@ -88,7 +89,7 @@ def consumer(input_q, output_q, progress_q):
             ct.id_municipi.state.code,
             get_codi_ine(ct.id_municipi.ine),
             ct.id_subtipus.categoria_cne.codi,
-            ct.tensio_p or 0,
+            round(o_tensio_p / 1000.0, 3),
             ct.potencia,
             count_sec or 1,
             ct.cini or '',

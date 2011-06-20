@@ -54,7 +54,7 @@ def consumer(input_q, output_q, progress_q):
         if linia.cable and linia.cable.tipus:
             o_cable_codi = linia.cable.tipus.codi
             if (o_cable_codi == 'I' and linia.tipus_linia
-                and linia.tipus_linia.name[1] == 'S'):
+                and linia.tipus_linia.name[0] == 'S'):
                 o_cable_codi = 'S'
         else:
                 sys.stderr.write("**** ERROR: El tram %s no té cable o tipus\n"

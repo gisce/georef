@@ -8,6 +8,7 @@ import multiprocessing
 import sys
 
 from georef.loop import OOOP
+from progressbar import ProgressBar, ETA, Percentage, Bar
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
@@ -19,13 +20,14 @@ def producer(sequence, output_q):
         output_q.put(item)
 
 
-def consumer(input_q):
+def consumer(input_q, progress_q):
     """Fem l'informe.
     """
     model = O.normalize_model_name(sys.argv[5])
     proxy = getattr(O, model)
     while True:
         item = input_q.get()
+        progress_q.put(item)
         model_id, cini = item.split(';')
         try:
             proxy.write([int(model_id)], {'cini': cini})
@@ -34,22 +36,38 @@ def consumer(input_q):
             sys.stderr.flush()
         input_q.task_done()
     
+def progress(total, input_q):
+    """Rendering del progressbar de l'informe.
+    """
+    widgets = ['GeoRef informe: ', Percentage(), ' ', Bar(), ' ', ETA()]
+    pbar = ProgressBar(widgets=widgets, maxval=total).start()
+    done = 0
+    while True:
+        input_q.get()
+        done += 1
+        pbar.update(done)
+        if done >= total:
+            pbar.finish()
 
 def main():
     """Funció principal del programa.
     """
+    cinis_file = open(sys.argv[6])
+    sequence = cinis_file.readlines()
+    cinis_file.close()
     start = datetime.now()
     q = multiprocessing.JoinableQueue()
-    processes = [multiprocessing.Process(target=consumer, args=(q,))
+    q2 = multiprocessing.Queue()
+    processes = [multiprocessing.Process(target=consumer, args=(q,q2))
                  for x in range(0, multiprocessing.cpu_count())]
+    processes += [multiprocessing.Process(target=progress,
+                                              args=(len(sequence), q2))]
+
     for proc in processes:
         proc.daemon = True
         proc.start()
         sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
     sys.stderr.flush()
-    cinis_file = open(sys.argv[6])
-    sequence = cinis_file.readlines()
-    cinis_file.close()
     producer(sequence, q)
     q.join()
     sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))

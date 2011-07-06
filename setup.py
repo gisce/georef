@@ -9,6 +9,8 @@ import unittest
 from distutils.core import setup, Command
 from distutils.command.clean import clean as _clean
 
+from georef import __version__
+
 PACKAGES = ['georef']
 PACKAGES_DATA = {}
 
@@ -40,7 +42,7 @@ setup(name='georef',
       author='GISCE Enginyeria',
       author_email='devel@gisce.net',
       url='http://www.gisce.net',
-      version='0.5.5',
+      version=__version__,
       license='General Public Licence 2',
       long_description='''Long description''',
       provides=['georef'],

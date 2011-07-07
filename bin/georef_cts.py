@@ -21,6 +21,9 @@ from georef import __version__
 N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
              multiprocessing.cpu_count())
 
+QUIET = False
+INTERACTIVE = True
+
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
     """
@@ -135,11 +138,14 @@ def main(file_out, codi_r1):
     search_params = [('id_installacio.name', '!=', 'SE'),
                      ('id_installacio.name', '!=', 'CH')]
     sequence += O.GiscedataCts.search(search_params)
-    sys.stderr.write("Filtres utilitzats:\n")
-    pprint.pprint(search_params, sys.stderr)
-    sys.stderr.write("S'han trobat %s CTS. Correcte? " % len(sequence))
-    sys.stderr.flush()
-    raw_input()
+    if not QUIET or INTERACTIVE:
+        sys.stderr.write("Filtres utilitzats:\n")
+        pprint.pprint(search_params, sys.stderr)
+        sys.stderr.write("S'han trobat %s CTS.\n" % len(sequence))
+        sys.stderr.flush()
+    if INTERACTIVE:
+        sys.stderr.write("Correcte? ")
+        raw_input()
     start = datetime.now()
     q = multiprocessing.JoinableQueue()
     q2 = multiprocessing.Queue()
@@ -147,17 +153,21 @@ def main(file_out, codi_r1):
     processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3, 
                                                                 codi_r1))
                  for x in range(0, N_PROC)]
-    processes += [multiprocessing.Process(target=progress,
+    if not QUIET:
+        processes += [multiprocessing.Process(target=progress,
                                           args=(len(sequence), q3))]
     for proc in processes:
         proc.daemon = True
         proc.start()
-        sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
-    sys.stderr.flush()
+        if not QUIET:
+            sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
+    if not QUIET:
+        sys.stderr.flush()
     producer(sequence, q)
     q.join()
-    sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
-    sys.stderr.flush()
+    if not QUIET:
+        sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
+        sys.stderr.flush()
     fout = open(file_out, 'wb')
     fitxer = csv.writer(fout, delimiter=';', lineterminator='\n')
     while not q2.empty():
@@ -169,11 +179,15 @@ if __name__ == '__main__':
     try:
         parser = OptionParser(usage="%prog [OPTIONS]", version=__version__)
         parser.add_option("-q", "--quiet", dest="quiet", 
-                               help="No mostrar missatges de status per stdout")
-        parser.add_option("--no-interactive", dest="noint",
-                               help="Deshabilitar el mode interactiu")
+                action="store_true", default=False,
+                help="No mostrar missatges de status per stderr")
+        parser.add_option("--no-interactive", dest="interactive", 
+                action="store_false", default=True,
+                help="Deshabilitar el mode interactiu")
         parser.add_option("-o", "--output", dest="fout", 
-                               help="Fitxer de sortida")
+                help="Fitxer de sortida")
+        parser.add_option("-c", "--codi-r1", dest="r1",
+                help="Codi R1 de la distribuidora")
         
         group = OptionGroup(parser, "Server options")
         group.add_option("-s", "--server", dest="server", default="localhost",
@@ -186,11 +200,11 @@ if __name__ == '__main__':
                 help="Contrasenya usuari ERP")
         group.add_option("-d", "--database", dest="database",
                 help="Nom de la base de dades")
-        group.add_option("-c", "--codi-r1", dest="r1",
-                help="Codi R1 de la distribuidora")
         
         parser.add_option_group(group)
         (options, args) = parser.parse_args()
+        QUIET = options.quiet
+        INTERACTIVE = options.interactive
         if not options.fout:
             parser.error("Es necessita indicar un nom de fitxer")
         O = OOOP(dbname=options.database, user=options.user, pwd=options.password,

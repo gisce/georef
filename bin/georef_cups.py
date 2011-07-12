@@ -159,8 +159,7 @@ def main(file_out, codi_r1):
         proc.start()
         if not QUIET:
             sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
-    if not QUIET:
-        sys.stderr.flush()
+    sys.stderr.flush()
     producer(sequence, q)
     q.join()
     if not QUIET:

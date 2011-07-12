@@ -12,8 +12,9 @@ from datetime import datetime
 from optparse import OptionGroup, OptionParser
 import csv
 
-from georef.loop import OOOP, __version__
+from georef.loop import OOOP
 from progressbar import ProgressBar, ETA, Percentage, Bar
+from georef import __version__
 
 N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
              multiprocessing.cpu_count())
@@ -128,8 +129,7 @@ def main(file_out, codi_r1):
         proc.start()
         if not QUIET:
             sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
-    if not QUIET:
-        sys.stderr.flush()
+    sys.stderr.flush()
     producer(sequence, q)
     q.join()
     if not QUIET:

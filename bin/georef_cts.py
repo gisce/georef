@@ -119,8 +119,7 @@ def progress(total, input_q):
 def check_module_cne_installed():
     """Comprovem que el mòdul de la CNE està instal·lat.
     """
-    cne_module = O.IrModuleModule.filter(name='giscedata_cne')[0]
-    if cne_module.state != 'installed':
+    if not O.GiscedataCtsSubtipus.fields_get().get('categoria_cne', False):
         sys.stderr.write("**** ERROR. El mòdul 'giscedata_cne' no està "
                          "instal·lat. S'ha d'instal·lar i assignar els "
                          "subtipus abans de llançar aquest script.\n")

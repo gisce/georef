@@ -5,20 +5,24 @@ FORMULARIO 4: “Información relativa a la configuración y el equipamiento de 
 centros de transformación reales existentes a 31 de diciembre de 2010”
 """
 import sys
-import codecs
 import multiprocessing
 import pprint
 import re
 import os
 from datetime import datetime
+from optparse import OptionGroup, OptionParser
+import csv
 
 from georef.loop import OOOP
 from georef import get_codi_ine
 from progressbar import ProgressBar, ETA, Percentage, Bar
+from georef import __version__
 
-sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
              multiprocessing.cpu_count())
+
+QUIET = False
+INTERACTIVE = True
 
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
@@ -27,10 +31,10 @@ def producer(sequence, output_q):
         output_q.put(item)
 
 
-def consumer(input_q, output_q, progress_q):
+def consumer(input_q, output_q, progress_q, codi_r1):
     """Fem l'informe.
     """
-    codi_r1 = sys.argv[5][-3:]
+    codi_r1 = codi_r1[-3:]
     ctat_ids = O.GiscegisBlocsCtat.search([])
     search_params = [('blockname.name', 'in', ('SEC_C', 'SEC_B'))]
     s_ids = O.GiscegisBlocsSeccionadorunifilar.search(search_params)
@@ -115,8 +119,7 @@ def progress(total, input_q):
 def check_module_cne_installed():
     """Comprovem que el mòdul de la CNE està instal·lat.
     """
-    cne_module = O.IrModuleModule.filter(name='giscedata_cne')[0]
-    if cne_module.state != 'installed':
+    if not O.GiscedataCtsSubtipus.fields_get().get('categoria_cne', False):
         sys.stderr.write("**** ERROR. El mòdul 'giscedata_cne' no està "
                          "instal·lat. S'ha d'instal·lar i assignar els "
                          "subtipus abans de llançar aquest script.\n")
@@ -125,7 +128,7 @@ def check_module_cne_installed():
     return True
 
 
-def main():
+def main(file_out, codi_r1):
     """Funció principal del programa.
     """
     if not check_module_cne_installed():
@@ -134,40 +137,78 @@ def main():
     search_params = [('id_installacio.name', '!=', 'SE'),
                      ('id_installacio.name', '!=', 'CH')]
     sequence += O.GiscedataCts.search(search_params)
-    sys.stderr.write("Filtres utilitzats:\n")
-    pprint.pprint(search_params, sys.stderr)
-    sys.stderr.write("S'han trobat %s CTS. Correcte? " % len(sequence))
-    sys.stderr.flush()
-    raw_input()
+    if not QUIET or INTERACTIVE:
+        sys.stderr.write("Filtres utilitzats:\n")
+        pprint.pprint(search_params, sys.stderr)
+        sys.stderr.write("S'han trobat %s CTS.\n" % len(sequence))
+        sys.stderr.flush()
+    if INTERACTIVE:
+        sys.stderr.write("Correcte? ")
+        raw_input()
     start = datetime.now()
     q = multiprocessing.JoinableQueue()
     q2 = multiprocessing.Queue()
     q3 = multiprocessing.Queue()
-    processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3))
+    processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3, 
+                                                                codi_r1))
                  for x in range(0, N_PROC)]
-    processes += [multiprocessing.Process(target=progress,
+    if not QUIET:
+        processes += [multiprocessing.Process(target=progress,
                                           args=(len(sequence), q3))]
     for proc in processes:
         proc.daemon = True
         proc.start()
-        sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
+        if not QUIET:
+            sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
     sys.stderr.flush()
     producer(sequence, q)
     q.join()
-    sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
-    sys.stderr.flush()
+    if not QUIET:
+        sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
+        sys.stderr.flush()
+    fout = open(file_out, 'wb')
+    fitxer = csv.writer(fout, delimiter=';', lineterminator='\n')
     while not q2.empty():
         msg = q2.get()
-        msg = map(unicode, msg)
-        sys.stdout.write('%s\n' % ';'.join(msg))
+        msg = map(lambda x: type(x)==unicode and x.encode('utf-8') or x, msg)
+        fitxer.writerow(msg)
 
 if __name__ == '__main__':
     try:
-        dbname = sys.argv[1]
-        port = int(sys.argv[2])
-        user = sys.argv[3]
-        pwd = sys.argv[4]
-        O = OOOP(dbname=dbname, port=port, user=user, pwd=pwd)
-        main()
+        parser = OptionParser(usage="%prog [OPTIONS]", version=__version__)
+        parser.add_option("-q", "--quiet", dest="quiet", 
+                action="store_true", default=False,
+                help="No mostrar missatges de status per stderr")
+        parser.add_option("--no-interactive", dest="interactive", 
+                action="store_false", default=True,
+                help="Deshabilitar el mode interactiu")
+        parser.add_option("-o", "--output", dest="fout", 
+                help="Fitxer de sortida")
+        parser.add_option("-c", "--codi-r1", dest="r1",
+                help="Codi R1 de la distribuidora")
+        
+        group = OptionGroup(parser, "Server options")
+        group.add_option("-s", "--server", dest="server", default="localhost",
+                help=u"Adreça servidor ERP")
+        group.add_option("-p", "--port", dest="port", default=8069,
+                help="Port servidor ERP")
+        group.add_option("-u", "--user", dest="user", default="admin",
+                help="Usuari servidor ERP")
+        group.add_option("-w", "--password", dest="password", default="admin",
+                help="Contrasenya usuari ERP")
+        group.add_option("-d", "--database", dest="database",
+                help="Nom de la base de dades")
+        
+        parser.add_option_group(group)
+        (options, args) = parser.parse_args()
+        QUIET = options.quiet
+        INTERACTIVE = options.interactive
+        if not options.fout:
+            parser.error("Es necessita indicar un nom de fitxer")
+        O = OOOP(dbname=options.database, user=options.user, pwd=options.password,
+                 port=int(options.port))
+
+        main(options.fout, options.r1)
+
     except KeyboardInterrupt:
         pass

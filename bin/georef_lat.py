@@ -52,6 +52,20 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                                  "cable o tipus\n" % (tram.name,
                                                       linia.name))
                 continue
+            coords = {}
+            search_params = [('id_linktemplate', '=', tram.name),
+                             ('layer', 'ilike', 'LAT%')]
+            edge = O.GiscegisEdge.search(search_params)
+            if edge:
+                edge = O.GiscegisEdge.get(edge[0])
+                start_node = edge.start_node
+                end_node = edge.end_node
+                coords = {
+                    'start_x': start_node.vertex.x,
+                    'start_y': start_node.vertex.y,
+                    'end_x': end_node.vertex.x,
+                    'end_y': end_node.vertex.y
+                }
             output_q.put([
                 'R1-%s' % codi_r1.zfill(3),
                 '%s-%s' % (linia.name, tram.name),
@@ -63,6 +77,10 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                 round(tram.longitud_cad / 1000.0, 3) or 0,
                 tram.cini or '',
                 1,
+                coords.get('start_x', 0),
+                coords.get('start_y', 0),
+                coords.get('end_x', 0),
+                coords.get('end_y', 0),
             ])
         input_q.task_done()
 

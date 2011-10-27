@@ -38,6 +38,12 @@ def consumer(input_q, output_q, progress_q, codi_r1):
         linia = O.GiscedataBtElement.get(item)
         res = O.GiscegisEdge.search([('id_linktemplate', '=', linia.name),
                                      ('layer', 'ilike', '%BT%')])
+        coords = {
+            'start_x': 0,
+            'start_y': 0,
+            'end_x': 0,
+            'end_y': 0
+        }
         if not res:
             if not QUIET:
                 sys.stderr.write("**** ERROR: l'element %s (id:%s) no està "
@@ -55,6 +61,17 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                 'end_node': (0, '%s_1' % linia.name)}
         else:
             edge = O.GiscegisEdge.read(res[0], ['start_node', 'end_node'])
+            start_node = O.GiscegisNodes.read(edge['start_node'][0], ['vertex'])
+            end_node = O.GiscegisNodes.read(edge['end_node'][0], ['vertex'])
+            start_v = O.GiscegisVertex.read(start_node['vertex'][0], ['x', 'y'])
+            end_v = O.GiscegisVertex.read(end_node['vertex'][0], ['x', 'y'])
+            coords = {
+                'start_x': start_v['x'],
+                'start_y': start_v['y'],
+                'end_x': end_v['x'],
+                'end_y': end_v['y']
+            }
+
         if linia.cable and linia.cable.tipus:
             o_cable_codi = linia.cable.tipus.codi
             if (o_cable_codi == 'I' and linia.tipus_linia
@@ -77,6 +94,10 @@ def consumer(input_q, output_q, progress_q, codi_r1):
             round(linia.longitud_cad / 1000.0, 3) or 0,
             linia.cini or '',
             1,
+            coords.get('start_x'),
+            coords.get('start_y'),
+            coords.get('end_x'),
+            coords.get('end_y'),
         ])
         input_q.task_done()
 

@@ -52,7 +52,7 @@ def consumer(input_q, output_q, progress_q, codi_r1):
         if not cups:
             input_q.task_done()
             continue
-        o_name = cups['name']
+        o_name = cups['name'][:20]
         o_codi_ine = ''
         o_codi_prov = ''
         if cups['id_municipi']:

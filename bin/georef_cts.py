@@ -42,6 +42,7 @@ def consumer(input_q, output_q, progress_q, codi_r1):
              for x in O.GiscegisBlocsSeccionadorunifilar.read(s_ids, ['codi'])]
     ct_nodes = {}
     ct_vertex = {}
+    ct_expedient = {}
     for ct in O.GiscegisBlocsCtat.read(ctat_ids, ['ct', 'node', 'vertex']):
         if not ct['ct']:
             continue
@@ -83,6 +84,11 @@ def consumer(input_q, output_q, progress_q, codi_r1):
             if re.match(regexp, codi):
                 count_sec += 1
         o_tensio_p = int(filter(str.isdigit, ct.tensio_p or '') or 0)
+        # Calculem any posada en marxa        
+        if not ct.data_pm:
+            any_pm = ct.data_industria and ct.data_industria[:4] or ''
+        else:
+            any_pm=ct.data_pm[:4]
         output_q.put([
             'R1-%s' % codi_r1.zfill(3),
             ct.name,
@@ -97,7 +103,9 @@ def consumer(input_q, output_q, progress_q, codi_r1):
             ct.potencia,
             count_sec or 1,
             ct.cini or '',
-            1
+            1,
+            any_pm,
+            ct.perc_financament
         ])
         input_q.task_done()
 

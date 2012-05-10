@@ -20,6 +20,7 @@ N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
              multiprocessing.cpu_count())
 QUIET = False
 INTERACTIVE = True
+GEOREF = False
 
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
@@ -173,6 +174,9 @@ if __name__ == '__main__':
                 help="Fitxer de sortida")
         parser.add_option("-c", "--codi-r1", dest="r1",
                 help="Codi R1 de la distribuidora")
+        parser.add_option("-g", "--georef", dest="georef", 
+                action="store_true",default=False,
+                help=u"Afegeix georefenciació (!no CNE standard)")
         
         group = OptionGroup(parser, "Server options")
         group.add_option("-s", "--server", dest="server", default="localhost",
@@ -190,6 +194,7 @@ if __name__ == '__main__':
         (options, args) = parser.parse_args()
         QUIET = options.quiet
         INTERACTIVE = options.interactive
+        GEOREF = options.georef
         if not options.fout:
             parser.error("Es necessita indicar un nom de fitxer")
         O = OOOP(dbname=options.database, user=options.user, pwd=options.password,

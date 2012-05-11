@@ -80,15 +80,18 @@ def consumer(input_q, output_q, progress_q, codi_r1):
         # Calculem el número de SEC_B i SEC_C
         count_sec = 0
         for codi in codis:
-            regexp = '%s(-{1}.*)$' % filter(lambda x: str(x).isdigit(), ct.name)
+            regexp = '%s(-{1}.*)$' % filter(
+                lambda x: str(x).isdigit(), ct.name)
             if re.match(regexp, codi):
                 count_sec += 1
         o_tensio_p = int(filter(str.isdigit, ct.tensio_p or '') or 0)
-        # Calculem any posada en marxa        
+        # Calculem any posada en marxa
         if not ct.data_pm:
             any_pm = ct.data_industria and ct.data_industria[:4] or ''
         else:
-            any_pm=ct.data_pm[:4]
+            any_pm = ct.data_pm[:4]
+        # Propietari
+        propietari = ct.propietari and "1" or "0"
         output_q.put([
             'R1-%s' % codi_r1.zfill(3),
             ct.name,
@@ -103,7 +106,7 @@ def consumer(input_q, output_q, progress_q, codi_r1):
             ct.potencia,
             count_sec or 1,
             ct.cini or '',
-            1,
+            propietari,
             any_pm,
             ct.perc_financament
         ])
@@ -157,7 +160,7 @@ def main(file_out, codi_r1):
     q = multiprocessing.JoinableQueue()
     q2 = multiprocessing.Queue()
     q3 = multiprocessing.Queue()
-    processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3, 
+    processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3,
                                                                 codi_r1))
                  for x in range(0, N_PROC)]
     if not QUIET:
@@ -178,19 +181,19 @@ def main(file_out, codi_r1):
     fitxer = csv.writer(fout, delimiter=';', lineterminator='\n')
     while not q2.empty():
         msg = q2.get()
-        msg = map(lambda x: type(x)==unicode and x.encode('utf-8') or x, msg)
+        msg = map(lambda x: type(x) == unicode and x.encode('utf-8') or x, msg)
         fitxer.writerow(msg)
 
 if __name__ == '__main__':
     try:
         parser = OptionParser(usage="%prog [OPTIONS]", version=__version__)
-        parser.add_option("-q", "--quiet", dest="quiet", 
+        parser.add_option("-q", "--quiet", dest="quiet",
                 action="store_true", default=False,
                 help="No mostrar missatges de status per stderr")
-        parser.add_option("--no-interactive", dest="interactive", 
+        parser.add_option("--no-interactive", dest="interactive",
                 action="store_false", default=True,
                 help="Deshabilitar el mode interactiu")
-        parser.add_option("-o", "--output", dest="fout", 
+        parser.add_option("-o", "--output", dest="fout",
                 help="Fitxer de sortida")
         parser.add_option("-c", "--codi-r1", dest="r1",
                 help="Codi R1 de la distribuidora")
@@ -213,8 +216,8 @@ if __name__ == '__main__':
         INTERACTIVE = options.interactive
         if not options.fout:
             parser.error("Es necessita indicar un nom de fitxer")
-        O = OOOP(dbname=options.database, user=options.user, pwd=options.password,
-                 port=int(options.port))
+        O = OOOP(dbname=options.database, user=options.user,
+                 pwd=options.password, port=int(options.port))
 
         main(options.fout, options.r1)
 

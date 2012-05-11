@@ -54,20 +54,21 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                                                       linia.name))
                 continue
             coords = {}
-            search_params = [('id_linktemplate', '=', tram.name),
-                             ('layer', 'ilike', 'LAT%')]
-            edge = O.GiscegisEdge.search(search_params)
-            if edge:
-                edge = O.GiscegisEdge.get(edge[0])
-                start_node = edge.start_node
-                end_node = edge.end_node
-                coords = {
-                    'start_x': start_node.vertex.x,
-                    'start_y': start_node.vertex.y,
-                    'end_x': end_node.vertex.x,
-                    'end_y': end_node.vertex.y
-                }
-            output_q.put([
+            if GEOREF:
+                search_params = [('id_linktemplate', '=', tram.name),
+                                 ('layer', 'ilike', 'LAT%')]
+                edge = O.GiscegisEdge.search(search_params)
+                if edge:
+                    edge = O.GiscegisEdge.get(edge[0])
+                    start_node = edge.start_node
+                    end_node = edge.end_node
+                    coords = {
+                        'start_x': start_node.vertex.x,
+                        'start_y': start_node.vertex.y,
+                        'end_x': end_node.vertex.x,
+                        'end_y': end_node.vertex.y
+                    }
+            output = [
                 'R1-%s' % codi_r1.zfill(3),
                 '%s-%s' % (linia.name, tram.name),
                 tram.origen and tram.origen[:20] or '',
@@ -77,12 +78,16 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                 tram.circuits or 1,
                 round(tram.longitud_cad / 1000.0, 3) or 0,
                 tram.cini or '',
-                1,
-                coords.get('start_x', 0),
-                coords.get('start_y', 0),
-                coords.get('end_x', 0),
-                coords.get('end_y', 0),
-            ])
+                1,]
+            if GEOREF:
+                output.extend([
+                    coords.get('start_x', 0),
+                    coords.get('start_y', 0),
+                    coords.get('end_x', 0),
+                    coords.get('end_y', 0),
+                ])            
+            output_q.put(output)
+
         input_q.task_done()
 
 
@@ -111,6 +116,10 @@ def main(file_out, codi_r1):
         pprint.pprint(search_params, sys.stderr)
         sys.stderr.write("S'han trobat %s línies.\n" % len(sequence))
         sys.stderr.flush()
+        if GEOREF:
+            sys.stderr.write(u"ATENCIÓ! Has inclòs camps de georeferenciació. "
+                             u"El fitxer no és vàlid per CNE\n")
+            sys.stderr.flush()
     if INTERACTIVE:
         sys.stderr.write("Correcte? ")
         raw_input()

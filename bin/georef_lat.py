@@ -20,6 +20,7 @@ N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
              multiprocessing.cpu_count())
 QUIET = False
 INTERACTIVE = True
+GEOREF = False
 
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
@@ -52,7 +53,22 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                                  "cable o tipus\n" % (tram.name,
                                                       linia.name))
                 continue
-            output_q.put([
+            coords = {}
+            if GEOREF:
+                search_params = [('id_linktemplate', '=', tram.name),
+                                 ('layer', 'ilike', 'LAT%')]
+                edge = O.GiscegisEdge.search(search_params)
+                if edge:
+                    edge = O.GiscegisEdge.get(edge[0])
+                    start_node = edge.start_node
+                    end_node = edge.end_node
+                    coords = {
+                        'start_x': start_node.vertex.x,
+                        'start_y': start_node.vertex.y,
+                        'end_x': end_node.vertex.x,
+                        'end_y': end_node.vertex.y
+                    }
+            output = [
                 'R1-%s' % codi_r1.zfill(3),
                 '%s-%s' % (linia.name, tram.name),
                 tram.origen and tram.origen[:20] or '',
@@ -62,8 +78,16 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                 tram.circuits or 1,
                 round(tram.longitud_cad / 1000.0, 3) or 0,
                 tram.cini or '',
-                1,
-            ])
+                1,]
+            if GEOREF:
+                output.extend([
+                    coords.get('start_x', 0),
+                    coords.get('start_y', 0),
+                    coords.get('end_x', 0),
+                    coords.get('end_y', 0),
+                ])            
+            output_q.put(output)
+
         input_q.task_done()
 
 
@@ -92,6 +116,10 @@ def main(file_out, codi_r1):
         pprint.pprint(search_params, sys.stderr)
         sys.stderr.write("S'han trobat %s línies.\n" % len(sequence))
         sys.stderr.flush()
+        if GEOREF:
+            sys.stderr.write(u"ATENCIÓ! Has inclòs camps de georeferenciació. "
+                             u"El fitxer no és vàlid per CNE\n")
+            sys.stderr.flush()
     if INTERACTIVE:
         sys.stderr.write("Correcte? ")
         raw_input()
@@ -155,6 +183,9 @@ if __name__ == '__main__':
                 help="Fitxer de sortida")
         parser.add_option("-c", "--codi-r1", dest="r1",
                 help="Codi R1 de la distribuidora")
+        parser.add_option("-g", "--georef", dest="georef", 
+                action="store_true",default=False,
+                help=u"Afegeix georefenciació (!no CNE standard)")
         
         group = OptionGroup(parser, "Server options")
         group.add_option("-s", "--server", dest="server", default="localhost",
@@ -172,6 +203,7 @@ if __name__ == '__main__':
         (options, args) = parser.parse_args()
         QUIET = options.quiet
         INTERACTIVE = options.interactive
+        GEOREF = options.georef
         if not options.fout:
             parser.error("Es necessita indicar un nom de fitxer")
         O = OOOP(dbname=options.database, user=options.user, pwd=options.password,

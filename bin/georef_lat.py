@@ -53,6 +53,15 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                                  "cable o tipus\n" % (tram.name,
                                                       linia.name))
                 continue
+            # Calculem any posada en marxa
+            if not tram.data_pm:
+                any_pm = tram.data_industria and tram.data_industria[:4] or ''
+            else:
+                any_pm = tram.data_pm[:4]
+            # Propietari
+            propietari = linia.propietari and "1" or "0"
+            # Coeficient per ajustar longituds de trams
+            coeficient = tram.coeficient or 1.0
             coords = {}
             if GEOREF:
                 search_params = [('id_linktemplate', '=', tram.name),
@@ -76,9 +85,13 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                 o_cable_codi,
                 round((linia.tensio or 0) / 1000.0, 3),
                 tram.circuits or 1,
-                round(tram.longitud_cad / 1000.0, 3) or 0,
+                round(tram.longitud_cad * coeficient / 1000.0, 3) or 0,
                 tram.cini or '',
-                1,]
+                1,
+                propietari,
+                any_pm,
+                tram.perc_financament
+                ]
             if GEOREF:
                 output.extend([
                     coords.get('start_x', 0),

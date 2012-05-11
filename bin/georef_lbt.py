@@ -85,6 +85,12 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                     sys.stderr.write("**** ERROR: El tram %s no té cable "
                                      "o tipus\n" % linia.name)
                 continue
+        # Calculem any posada en marxa
+        any_pm = linia.data_alta and linia.data_alta[:4] or ''
+        # Propietari
+        propietari = linia.propietari and "1" or "0"
+        # Coeficient per ajustar longituds de trams
+        coeficient = linia.coeficient or 1.0        
         o_voltatge = int(filter(str.isdigit, linia.voltatge or '') or 0)
         output = [
             'R1-%s' % codi_r1.zfill(3),
@@ -94,9 +100,11 @@ def consumer(input_q, output_q, progress_q, codi_r1):
             o_cable_codi,
             round(o_voltatge / 1000.0, 3),
             1,
-            round(linia.longitud_cad / 1000.0, 3) or 0,
+            round(linia.longitud_cad * coeficient / 1000.0, 3) or 0,
             linia.cini or '',
-            1,]
+            propietari,
+            any_pm,
+            linia.perc_financament]
         if GEOREF:
             output.extend([
                 coords.get('start_x'),

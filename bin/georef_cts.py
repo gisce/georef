@@ -80,8 +80,8 @@ def consumer(input_q, output_q, progress_q, codi_r1):
         # Calculem el número de SEC_B i SEC_C
         count_sec = 0
         for codi in codis:
-            regexp = '%s(-{1}.*)$' % filter(
-                lambda x: str(x).isdigit(), ct.name)
+            regexp = '%s(-{1}.*)$' % ''.join(
+                    [a for a in ct.name if a.isdigit()])
             if re.match(regexp, codi):
                 count_sec += 1
         o_tensio_p = int(filter(str.isdigit, ct.tensio_p or '') or 0)

@@ -48,7 +48,9 @@ def consumer(input_q, output_q, progress_q, codi_r1):
         item = input_q.get()
         progress_q.put(item)
         cups = O.GiscedataCupsPs.read(item, ['name', 'id_escomesa',
-                                             'id_municipi'])
+                                             'id_municipi',
+                                             'cne_anual_activa',
+                                             'cne_anual_reactiva'])
         if not cups:
             input_q.task_done()
             continue
@@ -102,6 +104,9 @@ def consumer(input_q, output_q, progress_q, codi_r1):
         if polissa_id:
             polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'])
             o_potencia = polissa['potencia']
+        #energies consumides
+        o_anual_activa = cups['cne_anual_activa'] or 0.0
+        o_anual_reactiva = cups['cne_anual_reactiva'] or 0.0
         output_q.put([
            o_codi_r1,
            o_name,
@@ -112,7 +117,9 @@ def consumer(input_q, output_q, progress_q, codi_r1):
            o_equip,
            o_linia,
            o_potencia,
-           o_potencia
+           o_potencia,
+           o_anual_activa,
+           o_anual_reactiva
         ])
         input_q.task_done()
 

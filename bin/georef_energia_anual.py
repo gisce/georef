@@ -24,7 +24,7 @@ N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
     """
-    for item in sequence:
+    for item in cups_list:
         output_q.put(item)
 
 
@@ -34,31 +34,19 @@ def consumer(input_q, progress_q):
     while True:
         item = input_q.get()
         progress_q.put(item)
-        cups, e_activa, e_reactiva = item.split(';')
-        cerca = "".join([cups[:20], '%'])
-        res = O.GiscedataCupsPs.search([('name', 'like', cerca)])
-        if not res:
-            sys.stderr.write(u"ERROR : cups %s not found\n" % cups)
+        res, cups, e_activa, e_reactiva = item
+        #sys.stderr.write("Modify[%d]: %s %03.2f %03.2f\n" %
+        #                 (res[0], cups, float(e_activa), float(e_reactiva)))
+        #Sys.stderr.flush()
+        try:
+            O.GiscedataCupsPs.write(res,
+                                    {'cne_anual_activa': e_activa,
+                                     'cne_anual_reactiva': e_reactiva})
+        except Exception as e:
+            sys.stderr.write(",".join(e.args))
+            sys.stderr.write("Write error: cups %s can not be modified\n" %
+                             cups)
             sys.stderr.flush()
-            continue
-        elif len(res) > 1:
-            sys.stderr.write(u"ERROR : cups %s "
-                             u"found more tan once (%d)\n" % (cups, len(res)))
-            sys.stderr.flush()
-            continue
-        else:
-            #sys.stderr.write("Modify[%d]: %s %03.2f %03.2f\n" %
-            #                 (res[0],cups,float(e_activa),float(e_reactiva)))
-            #sys.stderr.flush()
-            try:
-                O.GiscedataCupsPs.write(res[0],
-                                        {'cne_anual_activa': e_activa,
-                                         'cne_anual_reactiva': e_reactiva})
-            except Exception as e:
-                sys.stderr.write(",".join(e.args))
-                sys.stderr.write("Write error: cups %s can not be modified\n" %
-                                 cups)
-                sys.stderr.flush()
         input_q.task_done()
 
 
@@ -83,8 +71,9 @@ def main():
     start = datetime.now()
     q = multiprocessing.JoinableQueue()
     q2 = multiprocessing.Queue()
+    n_fils = unifil and 1 or N_PROC
     processes = [multiprocessing.Process(target=consumer, args=(q, q2))
-                 for x in range(0, N_PROC)]
+                 for x in range(0, n_fils)]
     processes += [multiprocessing.Process(target=progress,
                                               args=(len(sequence), q2))]
 
@@ -134,6 +123,34 @@ if __name__ == '__main__':
         sequence = energies_file.readlines()
         energies_file.close()
         O = OOOP(dbname=dbname, port=port, user=user, pwd=pwd)
+        # mirem versió ERP per desactivar multifil (temes de concurrència v4)
+        # Per fer-ho mirem la versió del mòdul base ( la mare dels ous )
+        res = O.IrModuleModule.search([('name', '=', 'base')])
+        rs = O.IrModuleModule.read(res, ['latest_version'])
+        ver = rs[0]['latest_version']
+        m_ver = int(ver[0])
+        if m_ver < 5:
+            unifil = True
+        else:
+            unifil = False
+        #sys.stderr.write(u"ERP Version %s (MAJOR %d)\n" % (ver, m_ver))
+        #sys.stderr.flush()
+        # preparem llista amb ids
+        cups_list = []
+        for item in sequence:
+            cups, e_activa, e_reactiva = item.split(';')
+            res = O.GiscedataCupsPs.search([('name', 'like', cups)])
+            if not res:
+                sys.stderr.write(u"ERROR : cups %s not found\n" % cups)
+                sys.stderr.flush()
+                continue
+            elif len(res) > 1:
+                sys.stderr.write(u"ERROR : cups %s found "
+                                 u"more than once (%d)\n" % (cups, len(res)))
+                sys.stderr.flush()
+                continue
+            else:
+                cups_list.append((res, cups, e_activa, e_reactiva))
         main()
     except KeyboardInterrupt:
         pass

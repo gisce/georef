@@ -42,8 +42,7 @@ def consumer(input_q, progress_q):
             O.GiscedataCupsPs.write(res,
                                     {'cne_anual_activa': e_activa,
                                      'cne_anual_reactiva': e_reactiva})
-        except Exception as e:
-            sys.stderr.write(",".join(e.args))
+        except Exception:
             sys.stderr.write("Write error: cups %s can not be modified\n" %
                              cups)
             sys.stderr.flush()

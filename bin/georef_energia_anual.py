@@ -35,9 +35,6 @@ def consumer(input_q, progress_q):
         item = input_q.get()
         progress_q.put(item)
         res, cups, e_activa, e_reactiva = item
-        #sys.stderr.write("Modify[%d]: %s %03.2f %03.2f\n" %
-        #                 (res[0], cups, float(e_activa), float(e_reactiva)))
-        #Sys.stderr.flush()
         try:
             O.GiscedataCupsPs.write(res,
                                     {'cne_anual_activa': e_activa,
@@ -132,9 +129,7 @@ if __name__ == '__main__':
             unifil = True
         else:
             unifil = False
-        #sys.stderr.write(u"ERP Version %s (MAJOR %d)\n" % (ver, m_ver))
-        #sys.stderr.flush()
-        # preparem llista amb ids
+
         cups_list = []
         for item in sequence:
             cups, e_activa, e_reactiva = item.split(';')

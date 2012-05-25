@@ -87,7 +87,6 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                 tram.circuits or 1,
                 round(tram.longitud_cad * coeficient / 1000.0, 3) or 0,
                 tram.cini or '',
-                1,
                 propietari,
                 any_pm,
                 tram.perc_financament

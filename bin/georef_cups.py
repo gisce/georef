@@ -13,9 +13,11 @@ provincia
 municipio
 equipo
 conexión
+tension
 potencia adscrita
 potencia contratada
-
+energia anual activa
+energia anual reactiva
 """
 import sys
 import os
@@ -64,10 +66,10 @@ def consumer(input_q, output_q, progress_q, codi_r1):
             o_codi_prov = provincia['code']
             o_codi_ine = get_codi_ine(ine)
 
-        o_equip = 'MEC'
         o_utmx = ''
         o_utmy = ''
         o_linia = ''
+        o_tensio = ''
         if cups and cups['id_escomesa']:
             search_params = [('escomesa', '=', cups['id_escomesa'][0])]
             bloc_escomesa_id = O.GiscegisBlocsEscomeses.search(search_params)
@@ -94,16 +96,22 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                         bt_id = O.GiscedataBtElement.search(search_params)
                         if bt_id:
                             bt = O.GiscedataBtElement.read(bt_id[0],
-                                                                ['tipus_linia'])
+                                                                ['tipus_linia',
+                                                                 'voltatge'])
                             if bt['tipus_linia']:
                                 o_linia = bt['tipus_linia'][1][0]
+                            o_tensio = bt['voltatge']
 
         search_params = [('cups', '=', cups['id'])]
         polissa_id = O.GiscedataPolissa.search(search_params)
         o_potencia = ''
+        o_equip = 'MEC'
         if polissa_id:
             polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'])
             o_potencia = polissa['potencia']
+        else:
+            #Si no trobem polissa activa, considerem "Contrato no activo (CNA)"
+            o_equip = 'CNA'
         #energies consumides
         o_anual_activa = cups['cne_anual_activa'] or 0.0
         o_anual_reactiva = cups['cne_anual_reactiva'] or 0.0
@@ -116,6 +124,7 @@ def consumer(input_q, output_q, progress_q, codi_r1):
            o_codi_ine,
            o_equip,
            o_linia,
+           o_tensio,
            o_potencia,
            o_potencia,
            o_anual_activa,

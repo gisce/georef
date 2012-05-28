@@ -3,7 +3,7 @@ import sys
 
 from georef.codis_ine import CODIS_INE
 
-__version__ = '0.12.1'
+__version__ = '0.12.2'
 
 def get_codi_ine(ine):
     """Retorna el codi INE només si el que li passem té 3 caràcters a part de

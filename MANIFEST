@@ -5,6 +5,7 @@ bin/georef_cts.py
 bin/georef_cups.py
 bin/georef_lat.py
 bin/georef_lbt.py
+bin/georef_energia_anual.py
 georef/__init__.py
 georef/codis_ine.py
 georef/loop.py

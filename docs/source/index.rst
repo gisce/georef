@@ -10,9 +10,18 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   
+   georef_cts
+   georef_lat
+   georef_lbt
+   georef_cups
 
-
-
+.. toctree::
+   :maxdepth: 2
+   
+   georef_cini
+   georef_energia_anual
+   
 Indices and tables
 ==================
 

@@ -7,6 +7,7 @@ Welcome to Scripts informes georeferenciats de la CNE's documentation!
 ======================================================================
 
 Contents:
+---------
 
 .. toctree::
    :maxdepth: 2
@@ -15,6 +16,9 @@ Contents:
    georef_lat
    georef_lbt
    georef_cups
+
+Scripts de Suport:
+------------------
 
 .. toctree::
    :maxdepth: 2

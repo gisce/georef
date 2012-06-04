@@ -1,9 +1,9 @@
-georef_cts.py: Script de generació F4 (CTS) CNE segons Circular 1/2012 des de GISCE-ERP
-=======================================================================================
+georef_lat.py: Script de generació F5-AT (LAT) CNE segons Circular 1/2012 des de GISCE-ERP
+==========================================================================================
 Introducció:
 -------------
 
-Aquest script genera l'informe F4 de la circular 1/2012 de la CNE.
+Aquest script genera l'informe F5 Alta Tensió de la circular 1/2012 de la CNE.
 Per fer-ho utilitza les dades de Gisce-ERP.
 
 * El paràmetre :option:`-c` ens permet epecificar el codi de l'empresa distribuïra segons 
@@ -76,9 +76,9 @@ Servidor ERP:
 Exemples:
 --------- 
 
-* Generació del fitxer F4 (CTS) de la base de dades **distri** amb usuari **admin** 
-  i password **admin** al fitxer **/tmp/F4.txt** amb codi R1 *052*. 
+* Generació del fitxer F5-AT (Línies d'Alta Tensió) de la base de dades **distri** 
+  amb usuari **admin** i password **admin** al fitxer **/tmp/F5a.txt** amb codi R1 *052*. 
   Els paràmetres *usuari* i *pwd* no es passen perquè *admin* n'és el valor per defecte:: 
 
-   > georef_cts.py -o /tmp/F4.txt -d distri -c 052
-
+   > georef_lat.py -o /tmp/F5a.txt -d distri -c 052
+   

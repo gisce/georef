@@ -100,7 +100,7 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                                                                  'voltatge'])
                             if bt['tipus_linia']:
                                 o_linia = bt['tipus_linia'][1][0]
-                            o_tensio = float(bt['voltatge'])/1000
+                            o_tensio = float(bt['voltatge']) / 1000.0
 
         search_params = [('cups', '=', cups['id'])]
         polissa_id = O.GiscedataPolissa.search(search_params)

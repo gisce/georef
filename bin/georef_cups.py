@@ -42,7 +42,7 @@ def producer(sequence, output_q):
         output_q.put(item)
 
 
-def consumer(input_q, output_q, progress_q, codi_r1):
+def consumer(input_q, output_q, progress_q, codi_r1, any_p):
     """Fem l'informe.
     """
     o_codi_r1 = 'R1-%s' % codi_r1[-3:]
@@ -102,12 +102,18 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                                 o_linia = bt['tipus_linia'][1][0]
                             o_tensio = float(bt['voltatge']) / 1000.0
 
-        search_params = [('cups', '=', cups['id'])]
-        polissa_id = O.GiscedataPolissa.search(search_params)
+        # Calculem l'últim dia de l'any per tenir en compte eles modificacions
+        # contractuals (només tindrà efecte a la versió 5) i la polissa activa
+        # aquell dia.
+        # Per v5, es treuen les polisses que estan en estat validar o esborrany
+        search_params = [('cups', '=', cups['id'])] + SEARCH_GLOB
+        polissa_id = O.GiscedataPolissa.search(search_params, 0, 0, False,
+                                               CONTEXT_GLOB)
         o_potencia = ''
         o_equip = 'MEC'
         if polissa_id:
-            polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'])
+            polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'],
+                     CONTEXT_GLOB)
             o_potencia = polissa['potencia']
         else:
             #Si no trobem polissa activa, considerem "Contrato no activo (CNA)"
@@ -147,7 +153,7 @@ def progress(total, input_q):
             pbar.finish()
 
 
-def main(file_out, codi_r1):
+def main(file_out, codi_r1, any_p):
     """Funció principal del programa.
     """
     sequence = []
@@ -155,6 +161,7 @@ def main(file_out, codi_r1):
     sequence += O.GiscedataCupsPs.search(search_params)
     if not QUIET or INTERACTIVE: 
         sys.stderr.write("S'han trobat %s CUPS.\n" % len(sequence))
+        sys.stderr.write("Any %d.\n" % any_p)
         sys.stderr.flush()
     if INTERACTIVE:
         sys.stderr.write("Correcte? ")
@@ -165,7 +172,7 @@ def main(file_out, codi_r1):
     q2 = multiprocessing.Queue()
     q3 = multiprocessing.Queue()
     processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3,
-                                                                codi_r1))
+                                                             codi_r1, any_p))
                  for x in range(0, N_PROC)]
     if not QUIET:
         processes += [multiprocessing.Process(target=progress,
@@ -174,12 +181,13 @@ def main(file_out, codi_r1):
         proc.daemon = True
         proc.start()
         if not QUIET:
-            sys.stderr.write("^Starting process PID: %s\n" % proc.pid)
+            sys.stderr.write("^Starting process PID (%s): %s\n" %
+                             (proc.name, proc.pid))
     sys.stderr.flush()
     producer(sequence, q)
     q.join()
     if not QUIET:
-        sys.stderr.write("Time Elapsed: %s" % (datetime.now() - start))
+        sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
         sys.stderr.flush()
     fout = open(file_out,'wb')
     fitxer = csv.writer(fout, delimiter=';', lineterminator='\n')
@@ -201,7 +209,10 @@ if __name__ == '__main__':
                 help="Fitxer de sortida")
         parser.add_option("-c", "--codi-r1", dest="r1",
                 help="Codi R1 de la distribuidora")
-        
+        parser.add_option("-y", "--year", dest="any_p",
+                          default=(datetime.now().year - 1),
+                          help=u"Any per càlculs")
+
         group = OptionGroup(parser, "Server options")
         group.add_option("-s", "--server", dest="server", default="localhost",
                 help=u"Adreça servidor ERP")
@@ -222,8 +233,18 @@ if __name__ == '__main__':
             parser.error("Es necessita indicar un nom de fitxer")
         O = OOOP(dbname=options.database, user=options.user, pwd=options.password,
                  port=int(options.port))
-
-        main(options.fout, options.r1)
+        ULTIM_DIA_ANY = ("%d-12-31" % int(options.any_p))
+        SEARCH_GLOB = []
+        CONTEXT_GLOB = {}
+        if 'state' in O.GiscedataPolissa.fields_get():
+            SEARCH_GLOB += [('state', 'not in', ('esborrany', 'validar')),
+                           ('data_alta', '<=', ULTIM_DIA_ANY),
+                           '|',
+                           ('data_baixa', '>=', ULTIM_DIA_ANY),
+                           ('data_baixa', '=', False)]
+            CONTEXT_GLOB['date'] = ULTIM_DIA_ANY
+            CONTEXT_GLOB['active_test'] = False
+        main(options.fout, options.r1, int(options.any_p))
 
     except KeyboardInterrupt:
         pass

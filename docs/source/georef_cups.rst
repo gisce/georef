@@ -49,6 +49,12 @@ Generals:
    Ha de tenir tres caracters encara que el número sigui inferior a 100, p.e 052.
    Agafa només els 3 darrers caracters. 
 
+.. option:: -y ANY_P, --year=ANY_P
+
+   Any que s'utilitzarà per calcular les potències contractades. 
+   S'utilitzarà la pòlissa activa el 31 de Desembre de l'any seleccionat. 
+   Any per defecte, any passat, p.e. 2011. 
+   
 Servidor ERP:
 ^^^^^^^^^^^^^
 

@@ -51,7 +51,7 @@ Els decimals separats per '.' (punt)
                 sys.stderr.write(
 """WARN: Al cups %s li asignarem P. Adscrita < P. Contractada (%s < %s )\n"""
                 % (cups, new_pa, pc))
-            print ("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s" %
+            sys.stdout.write("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n" %
                     (r1, cups, x, y, c1, c2, equipo, tipo,
                     V, new_pa, pc, ea, er))
             item_count = item_count + 1
@@ -61,13 +61,14 @@ Els decimals separats per '.' (punt)
             sys.stderr.write(
 """WARN: El cups %s és al fitxer de Potències Adscrites\n""" %
             cups)
-            print lin[:-1]
+            sys.stdout.write("%s\n" % lin[:-1])
 
     f7.close()
+    sys.stdout.flush()
     sys.stderr.write("""
     S'han actualitzat %d/%d Potències Adscrites de fitxer amb %d cups\n""" %
         (item_count, item_total, len(cups_list)))
-
+    sys.stderr.flush()
 
 if __name__ == "__main__":
     main()

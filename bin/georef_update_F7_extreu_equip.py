@@ -10,8 +10,8 @@ def main():
     if len(sys.argv) < 3:
         sys.stderr.write(
 """ ------------------------------------------------------------------
-Modificació d'equip de mesura F7 1/2012 CNE:
-Has de passar el fitxer F7 i el fitxer amb els cups SMT (telegestió)
+Extreu el CUPS de l'F7 1/2012 CNE:
+Has de passar el fitxer F7 i el fitxer amb els cups que no vols extreure
 Aquest 2on fitxer ha de contenir una línia per cups
 %s F7.txt CUPS.txt
                                      (c) Gisce-IT
@@ -24,7 +24,7 @@ Aquest 2on fitxer ha de contenir una línia per cups
         cups = lin[:-1].split(';')
         cups_smt.append(cups[0])
     fpc.close()
-    sys.stderr.write("S'han trobat %d CUPS SMT\n" % len(cups_smt))
+    sys.stderr.write("S'han trobat %d CUPS a extreure\n" % len(cups_smt))
 
     f7 = open(sys.argv[1])
     smt_count = 0
@@ -32,13 +32,14 @@ Aquest 2on fitxer ha de contenir una línia per cups
         cups = lin[7:27]
         if cups_smt.count(cups) > 0:
             smt_count = smt_count + 1
-            print lin[:-1].replace(';MEC;', ';SMT;')
         else:
-            print lin[:-1]
+            sys.stdout.write("%s\n" % lin[:-1])
 
     f7.close()
-    sys.stderr.write("S'han actualitzat %d/%d CUPS SMT\n" %
+    sys.stdout.flush()
+    sys.stderr.write("S'han extret %d/%d CUPS\n" %
         (smt_count, len(cups_smt)))
+    sys.stderr.flush()
 
 
 if __name__ == "__main__":

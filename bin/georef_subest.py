@@ -33,7 +33,7 @@ def producer(sequence, output_q):
         output_q.put(item)
 
 
-def consumer(input_q, output_q, progress_q, codi_r1):
+def consumer(input_q, output_q, progress_q, codi_r1, interruptor):
     """Fem l'informe.
     """
     codi_r1 = codi_r1[-3:]
@@ -83,6 +83,10 @@ def consumer(input_q, output_q, progress_q, codi_r1):
         ]
         grouped = {}
         for posicio in subest.posicions:
+            if interruptor and posicio.interruptor != '2':
+                continue
+            if not interruptor and posicio.interrutor != '3':
+                continue
             group_tag = '%s_%s_%s_%s' % (posicio.cini,
                                          posicio.propietari and '1' or '0',
                                          posicio.data_pm
@@ -119,7 +123,7 @@ def progress(total, input_q):
             pbar.finish()
 
 
-def main(file_out, codi_r1):
+def main(file_out, codi_r1, interruptor):
     """Funció principal del programa.
     """
     sequence = []
@@ -138,8 +142,9 @@ def main(file_out, codi_r1):
     q2 = multiprocessing.Queue()
     q3 = multiprocessing.Queue()
     processes = [multiprocessing.Process(target=consumer, args=(q, q2, q3,
-                                                                codi_r1))
-                 for x in range(0, N_PROC)]
+                                                                codi_r1,
+                                                                interruptor))
+                 for _ in xrange(0, N_PROC)]
     if not QUIET:
         processes += [multiprocessing.Process(target=progress,
                                           args=(len(sequence), q3))]
@@ -174,6 +179,12 @@ if __name__ == '__main__':
                 help="Fitxer de sortida")
         parser.add_option("-c", "--codi-r1", dest="r1",
                 help="Codi R1 de la distribuidora")
+        parser.add_option("--interruptor", dest="interruptor",
+                action="store_true", default=True,
+                help="Generar sense interruptors F1")
+        parser.add_option("--no-interruptor", dest="interruptor",
+                action="store_false", default=True,
+                help="Generar sense interruptors F1bis")
 
         group = OptionGroup(parser, "Server options")
         group.add_option("-s", "--server", dest="server", default="localhost",
@@ -196,7 +207,7 @@ if __name__ == '__main__':
         O = OOOP(dbname=options.database, user=options.user,
                  pwd=options.password, port=int(options.port))
 
-        main(options.fout, options.r1)
+        main(options.fout, options.r1, options.interruptor)
 
     except KeyboardInterrupt:
         pass

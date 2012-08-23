@@ -8,7 +8,6 @@ interruptor”
 import sys
 import multiprocessing
 import pprint
-import re
 import os
 from datetime import datetime
 from optparse import OptionGroup, OptionParser
@@ -25,6 +24,7 @@ N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
 QUIET = False
 INTERACTIVE = True
 
+IDX_POS = {'L': 0, 'T': 1, 'A': 2}
 
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
@@ -70,7 +70,7 @@ def consumer(input_q, output_q, progress_q, codi_r1):
             continue
         vertex = ct_vertex[ct.id]
         node = ct_nodes[ct.id]
-        output_q.put([
+        header = [
             'R1-%s' % codi_r1.zfill(3),
             subest.name,
             subest.descripcio[:20],
@@ -80,7 +80,28 @@ def consumer(input_q, output_q, progress_q, codi_r1):
             subest.id_municipi.state.code,
             get_codi_ine(subest.id_municipi.ine),
             subest.tipus_parc,
-        ])
+        ]
+        grouped = {}
+        for posicio in subest.posicions:
+            group_tag = '%s_%s_%s_%s' % (posicio.cini,
+                                         posicio.propietari and '1' or '0',
+                                         posicio.data_pm
+                                         or posicio.expedient.industria_data
+                                         or '', posicio.perc_financament)
+            grouped.setdefault(group_tag
+                               (0,
+                                0,
+                                0,
+                                posicio.tipus_posicio,
+                                posicio.cini,
+                                posicio.propietari and '1' or '0',
+                                posicio.data_pm
+                                or posicio.expedient.industria_data or '',
+                                posicio.perc_financament)
+            )
+            grouped[group_tag][IDX_POS[posicio.tipus_posicio]] += 1
+        for group in grouped:
+            output_q.put(header + group)
         input_q.task_done()
 
 

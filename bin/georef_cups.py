@@ -113,13 +113,17 @@ def consumer(input_q, output_q, progress_q, codi_r1, any_p):
         o_pot_ads = ''
         o_equip = 'MEC'
         if polissa_id:
-            polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'],
+            fields_to_read = ['potencia']
+            if 'butlletins' in O.GiscedataPolissa.fields_get():
+                fields_to_read += ['butlletins']
+            polissa = O.GiscedataPolissa.read(polissa_id[0], fields_to_read,
                      CONTEXT_GLOB)
             o_potencia = polissa['potencia']
             # Mirem si té l'actualització dels butlletins
-            if 'butlletins' in O.GiscedataPolissa.fields_get() \
-                and polissa.butlletins:
-                o_pot_ads = polissa.butlletins[-1].pot_max_admisible
+            if polissa['butlletins']:
+                butlleti = O.GiscedataButlleti.read(polissa['butlletins'][-1],
+                                                    ['pot_max_admisible'])
+                o_pot_ads = butlleti['pot_max_admisible']
         else:
             #Si no trobem polissa activa, considerem "Contrato no activo (CNA)"
             o_equip = 'CNA'

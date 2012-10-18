@@ -24,7 +24,7 @@ N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
 QUIET = False
 INTERACTIVE = True
 
-IDX_POS = {'L': 0, 'T': 1, 'A': 2}
+IDX_POS = {'L': 1, 'T': 2, 'A': 3}
 
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
@@ -68,8 +68,8 @@ def consumer(input_q, output_q, progress_q, codi_r1, interruptor):
                              "definit\n" % subest.name)
             input_q.task_done()
             continue
-        vertex = ct_vertex[ct.id]
-        node = ct_nodes[ct.id]
+        vertex = ct_vertex[subest.ct_id.id]
+        node = ct_nodes[subest.ct_id.id]
         header = [
             'R1-%s' % codi_r1.zfill(3),
             subest.name,
@@ -85,26 +85,29 @@ def consumer(input_q, output_q, progress_q, codi_r1, interruptor):
         for posicio in subest.posicions:
             if interruptor and posicio.interruptor != '2':
                 continue
-            if not interruptor and posicio.interrutor != '3':
+            if not interruptor and posicio.interruptor != '3':
                 continue
-            group_tag = '%s_%s_%s_%s' % (posicio.cini,
-                                         posicio.propietari and '1' or '0',
-                                         posicio.data_pm
-                                         or posicio.expedient.industria_data
-                                         or '', posicio.perc_financament)
-            grouped.setdefault(group_tag
-                               (0,
-                                0,
-                                0,
-                                posicio.tipus_posicio,
-                                posicio.cini,
-                                posicio.propietari and '1' or '0',
-                                posicio.data_pm
-                                or posicio.expedient.industria_data or '',
-                                posicio.perc_financament)
+            group_tag = '%s_%s_%s_%s' % (posicio.tensio.name,
+                 posicio.propietari and '1' or '0',
+                 posicio.data_pm and posicio.data_pm[:4]
+                 or posicio.expedient and posicio.expedient.industria_data[:4]
+                 or '',
+                 posicio.perc_financament)
+            grouped.setdefault(group_tag,
+               [round(posicio.tensio.tensio / 1000.0,3),
+               0,
+               0,
+               0,
+               posicio.tipus_posicio,
+               posicio.cini or '',
+               posicio.propietari and '1' or '0',
+               posicio.data_pm and posicio.data_pm[:4]
+               or posicio.expedient and posicio.expedient.industria_data[:4] 
+               or '',
+               posicio.perc_financament]
             )
-            grouped[group_tag][IDX_POS[posicio.tipus_posicio]] += 1
-        for group in grouped:
+            grouped[group_tag][IDX_POS[posicio.posicio_linia]] += 1
+        for group in grouped.values():
             output_q.put(header + group)
         input_q.task_done()
 

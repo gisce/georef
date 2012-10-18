@@ -1,9 +1,9 @@
-georef_lbt.py: Script de generació F5-BT (LBT) CNE segons Circular 1/2012 des de GISCE-ERP
+georef_cups.py: Script de generació F7 (CUPS) CNE segons Circular 1/2012 des de GISCE-ERP
 ==========================================================================================
 Introducció:
 -------------
 
-Aquest script genera l'informe F5 Baixa Tensió de la circular 1/2012 de la CNE.
+Aquest script genera l'informe F7 CUPS de la circular 1/2012 de la CNE.
 Per fer-ho utilitza les dades de Gisce-ERP.
 
 * El paràmetre :option:`-c` ens permet epecificar el codi de l'empresa distribuïra segons 
@@ -49,12 +49,6 @@ Generals:
    Ha de tenir tres caracters encara que el número sigui inferior a 100, p.e 052.
    Agafa només els 3 darrers caracters. 
 
-.. option:: -y ANY_P, --year=ANY_P
-
-   Any que s'utilitzarà per calcular les potències contractades. 
-   S'utilitzarà la pòlissa activa el 31 de Desembre de l'any seleccionat. 
-   Any per defecte, any passat, p.e. 2011. 
-   
 Servidor ERP:
 ^^^^^^^^^^^^^
 
@@ -82,9 +76,9 @@ Servidor ERP:
 Exemples:
 --------- 
 
-* Generació del fitxer F5-BT (Línies de Baixa Tensió) de la base de dades **distri** 
-  amb usuari **admin** i password **admin** al fitxer **/tmp/F5b.txt** amb codi R1 *052*. 
+* Generació del fitxer F7 (CUPS)
+  amb usuari **admin** i password **admin** al fitxer **/tmp/F7.txt** amb codi R1 *052*. 
   Els paràmetres *usuari* i *pwd* no es passen perquè *admin* n'és el valor per defecte:: 
 
-   > georef_lbt.py -o /tmp/F5b.txt -d distri -c 052
+   > georef_cups.py -o /tmp/F7.txt -d distri -c 052
    

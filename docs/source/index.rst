@@ -26,7 +26,7 @@ Scripts de Suport:
    georef_cini
    georef_energia_anual
    georef_update_F7_equipo_medida
-   georef_update_F7_potencia_contratada
+   georef_update_F7_potencia_adscrita
    georef_update_F7_extreu_equip
    
 Indices and tables

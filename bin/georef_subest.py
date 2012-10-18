@@ -26,6 +26,7 @@ INTERACTIVE = True
 
 IDX_POS = {'L': 1, 'T': 2, 'A': 3}
 
+
 def producer(sequence, output_q):
     """Posem els items que serviran per fer l'informe.
     """
@@ -94,7 +95,7 @@ def consumer(input_q, output_q, progress_q, codi_r1, interruptor):
                  or '',
                  posicio.perc_financament)
             grouped.setdefault(group_tag,
-               [round(posicio.tensio.tensio / 1000.0,3),
+               [round(posicio.tensio.tensio / 1000.0, 3),
                0,
                0,
                0,
@@ -102,7 +103,7 @@ def consumer(input_q, output_q, progress_q, codi_r1, interruptor):
                posicio.cini or '',
                posicio.propietari and '1' or '0',
                posicio.data_pm and posicio.data_pm[:4]
-               or posicio.expedient and posicio.expedient.industria_data[:4] 
+               or posicio.expedient and posicio.expedient.industria_data[:4]
                or '',
                posicio.perc_financament]
             )
@@ -184,7 +185,7 @@ if __name__ == '__main__':
                 help="Codi R1 de la distribuidora")
         parser.add_option("--interruptor", dest="interruptor",
                 action="store_true", default=True,
-                help="Generar sense interruptors F1")
+                help="Generar amb interruptors F1")
         parser.add_option("--no-interruptor", dest="interruptor",
                 action="store_false", default=True,
                 help="Generar sense interruptors F1bis")

@@ -16,6 +16,7 @@ Contents:
    georef_lat
    georef_lbt
    georef_cups
+   georef_subest
 
 Scripts de Suport:
 ------------------

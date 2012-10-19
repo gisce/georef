@@ -12,6 +12,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
+   georef_subest
    georef_cts
    georef_lat
    georef_lbt

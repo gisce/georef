@@ -94,8 +94,10 @@ def consumer(input_q, output_q, progress_q, codi_r1, interruptor):
                  or posicio.expedient and posicio.expedient.industria_data[:4]
                  or '',
                  posicio.perc_financament)
+            tensio = isinstance(posicio.tensio.tensio, int) \
+                and posicio.tensio.tensio or int(posicio.tensio.name)
             grouped.setdefault(group_tag,
-               [round(posicio.tensio.tensio / 1000.0, 3),
+               [round(tensio / 1000.0, 3),
                0,
                0,
                0,

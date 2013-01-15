@@ -6,13 +6,10 @@ bin/georef_cups.py
 bin/georef_lat.py
 bin/georef_lbt.py
 bin/georef_energia_anual.py
-<<<<<<< HEAD
 bin/georef_subest.py
-=======
 bin/georef_update_F7_equipo_medida.py
 bin/georef_update_F7_extreu_equip.py
 bin/georef_update_F7_potencia_adscrita.py
->>>>>>> georef_update_f7_scripts
 georef/__init__.py
 georef/codis_ine.py
 georef/loop.py

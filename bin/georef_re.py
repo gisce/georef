@@ -55,7 +55,7 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                                                         'cne_anual_reactiva'])
         o_cil = '%s%s' % (cups['name'][:20], '001')
         o_ener_activa = cups['cne_anual_activa']
-        o_ener_reactiva = cups['cne_anual_activa']
+        o_ener_reactiva = cups['cne_anual_reactiva']
         o_estimada = 'N'
         o_codi_ine = ''
         o_codi_prov = ''

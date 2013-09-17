@@ -10,6 +10,7 @@ bin/georef_subest.py
 bin/georef_update_F7_equipo_medida.py
 bin/georef_update_F7_extreu_equip.py
 bin/georef_update_F7_potencia_adscrita.py
+bin/georef_re.py
 georef/__init__.py
 georef/codis_ine.py
 georef/loop.py

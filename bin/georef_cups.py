@@ -62,8 +62,9 @@ def consumer(input_q, output_q, progress_q, codi_r1, any_p):
         if cups['id_municipi']:
             municipi = O.ResMunicipi.read(cups['id_municipi'][0], ['ine', 'state'])
             ine = municipi['ine']
-            provincia = O.ResCountryState.read(municipi['state'][0], ['code'])
-            o_codi_prov = provincia['code']
+            if municipi['state']:
+                provincia = O.ResCountryState.read(municipi['state'][0], ['code'])
+                o_codi_prov = provincia['code']
             o_codi_ine = get_codi_ine(ine)
 
         o_utmx = ''

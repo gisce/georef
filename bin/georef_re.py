@@ -46,10 +46,11 @@ def consumer(input_q, output_q, progress_q, codi_r1):
     while True:
         item = input_q.get() 
         progress_q.put(item)
-        re = O.GiscedataRe.read(item, ['cups'])
+        re = O.GiscedataRe.read(item, ['cups', 'potencia_nominal'])
         if not re:
             input_q.task_done()
             continue
+        o_potencia = re['potencia_nominal'] or ''
         cups = O.GiscedataCupsPs.read(re['cups'][0], ['name', 'id_municipi',
                                                         'id_escomesa', 'cne_anual_activa',
                                                         'cne_anual_reactiva'])
@@ -100,12 +101,6 @@ def consumer(input_q, output_q, progress_q, codi_r1):
                             if bt['tipus_linia']:
                                 o_linia = bt['tipus_linia'][1][0]
 
-        search_params = [('cups', '=', cups['id'])]
-        polissa_id = O.GiscedataPolissa.search(search_params)
-        o_potencia = ''
-        if polissa_id:
-            polissa = O.GiscedataPolissa.read(polissa_id[0], ['potencia'])
-            o_potencia = polissa['potencia']
         output_q.put([
            o_codi_r1,
            o_cil,

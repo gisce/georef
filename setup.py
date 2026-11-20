@@ -30,11 +30,11 @@ class Clean(_clean):
         """Comença la tasca de neteja."""
         _clean.run(self)
         if os.path.exists(self.build_base):
-            print "Cleaning %s dir" % self.build_base
+            print("Cleaning %s dir" % self.build_base)
             shutil.rmtree(self.build_base)
 
 INSTALL_REQUIRES = ['progressbar']
-if sys.version_info[1] < 6:
+if sys.version_info < (2, 6):
     INSTALL_REQUIRES += ['multiprocessing']
 
 setup(name='georef',
@@ -44,6 +44,10 @@ setup(name='georef',
       url='http://www.gisce.net',
       version=__version__,
       license='General Public Licence 2',
+      classifiers=[
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+      ],
       long_description='''Long description''',
       provides=['georef'],
       install_requires=INSTALL_REQUIRES,

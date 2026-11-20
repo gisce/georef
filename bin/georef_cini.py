@@ -11,7 +11,8 @@ import os
 from georef.loop import OOOP
 from progressbar import ProgressBar, ETA, Percentage, Bar
 
-sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
+if sys.version_info[0] < 3:
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
              multiprocessing.cpu_count())
 

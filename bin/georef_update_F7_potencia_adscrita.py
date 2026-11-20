@@ -39,7 +39,7 @@ Els decimals separats per '.' (punt)
             lin[:-1].split(';')
         item_total = item_total + 1
 
-        if cups_list.keys().count(cups) > 0:
+        if cups in cups_list:
             # És al fitxer de cups
             new_pa = cups_list[cups]
             if float(new_pa) == 0:

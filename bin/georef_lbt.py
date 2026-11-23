@@ -14,7 +14,7 @@ import csv
 
 from georef.loop import OOOP
 from progressbar import ProgressBar, ETA, Percentage, Bar
-from georef import __version__
+from georef import csv_row, open_csv, __version__
 
 N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
              multiprocessing.cpu_count())
@@ -178,11 +178,11 @@ def main(file_out, codi_r1):
     if not QUIET:
         sys.stderr.write("Time Elapsed: %s\n" % (datetime.now() - start))
         sys.stderr.flush()
-    fout = open(file_out, 'wb')
+    fout = open_csv(file_out)
     fitxer = csv.writer(fout, delimiter=';', lineterminator='\n')
     while not q2.empty():
         msg = q2.get()
-        msg = map(lambda x: type(x)==unicode and x.encode('utf-8') or x, msg)
+        msg = csv_row(msg)
         fitxer.writerow(msg)
 
 if __name__ == '__main__':

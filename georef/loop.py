@@ -20,10 +20,12 @@
 #
 ########################################################################
 
-import xmlrpclib
+try:
+    import xmlrpclib
+except ImportError:
+    from xmlrpc import client as xmlrpclib
 import time
 import base64
-import types
 
 # check if pydot is installed
 try:
@@ -159,7 +161,7 @@ class OOOP(object):
             if not self.search(model, query): # check if it's already present
                 self.create(model, d)
             else:
-                print 'Warning: %s already in %s model: %s' % (item, model)
+                print('Warning: %s already in %s model: %s' % (item, model))
 
     def load_models(self):
         models = self.read_all(OOOPMODELS)
@@ -287,11 +289,11 @@ class OOOP(object):
                 time.sleep(1)
             attempt += 1
             if attempt > 200:
-                print 'Printing aborted, too long delay!'
+                print('Printing aborted, too long delay!')
                 break
         
         if report_type == 'pdf':
-            string_pdf = base64.decodestring(report['result'])
+            string_pdf = base64.b64decode(report['result'])
             return string_pdf
         else:
             return report['result']
@@ -326,13 +328,15 @@ class List(object):
             self.index = -1
             raise StopIteration
         return self.__getitem__(self.index)
+
+    __next__ = next
         
     def delete(self):
-        print self.parent
+        print(self.parent)
         if self.parent:
             objects = self.parent.objects
             self.parent.objects = objects[:self.low] + objects[self.high:]
-        print self.objects
+        print(self.objects)
         # print "hi"
         # return True
         return self.manager._ooop.unlink(self.model, self.objects)
@@ -346,7 +350,7 @@ class List(object):
         return List(self.manager, self.objects[low:high], self, low, high, data=self.data, model=self.model)
 
     def __getitem__(self, offset):
-        if type(self.objects[offset]) != types.IntType:
+        if not isinstance(self.objects[offset], int):
             return self.objects[offset]
         else:
             #if type(data) != Types.StringType: # data != model
@@ -446,7 +450,7 @@ class Data(object):
         else:
             # get default values
             default_values = {}
-            field_names = self.fields.keys()
+            field_names = list(self.fields.keys())
             default_values = self._manager.default_get(field_names)
             self.init_values(**default_values)
 
@@ -536,7 +540,7 @@ class Data(object):
                 self.__dict__['__%s' % name] = data[name]
                 self.__dict__[name] = List(Manager(relation, self._ooop),
                                            data=self, model=relation)
-                for i in xrange(len(data[name])):
+                for i in range(len(data[name])):
                     key = '%s:%i' % (relation, data[name][i])
                     if key in self.INSTANCES.keys():
                         self.__dict__[name].append(self.INSTANCES['%s:%s' % (relation, data[name][i])])
@@ -552,7 +556,7 @@ class Data(object):
                                            data=self, model=relation)
         else:
             # axelor conector workaround
-            if type(data) == types.ListType:
+            if isinstance(data, list):
                 data = data[0]
                 
             self.__dict__[name] = data[name]
@@ -586,7 +590,7 @@ class Data(object):
                         data[name] = self.__dict__[name]
 
         if self._ooop.debug:
-            print ">>> data: ", data
+            print(">>> data: ", data)
 
         # create or write the object
         if self._ref > 0 and not self._copy: # same object
@@ -608,7 +612,7 @@ class Data(object):
     # TODO: to develop a more clever save function
     def save_all(self): 
         """ save related instances """
-        for key, instance in self.INSTANCES.items():
+        for key, instance in list(self.INSTANCES.items()):
             if instance != self: # save self at the end
                 instance.save()
             # updating INSTANCES

@@ -24,7 +24,7 @@ from optparse import OptionGroup, OptionParser
 import csv
 
 from georef.loop import OOOP
-from georef import get_codi_ine, __version__
+from georef import csv_row, get_codi_ine, open_csv, __version__
 from progressbar import ProgressBar, ETA, Percentage, Bar
 
 N_PROC = min(int(os.getenv('N_PROC', multiprocessing.cpu_count())),
@@ -165,11 +165,11 @@ def main(file_out, codi_r1):
     if not QUIET:
         sys.stderr.write("Time Elapsed: %s" % (datetime.now() - start))
         sys.stderr.flush()
-    fout = open(file_out,'wb')
+    fout = open_csv(file_out)
     fitxer = csv.writer(fout, delimiter=';', lineterminator='\n')
     while not q2.empty():
         msg = q2.get()
-        msg = map(lambda x: type(x)==unicode and x.encode('utf-8') or x, msg)
+        msg = csv_row(msg)
         fitxer.writerow(msg)
 
 if __name__ == '__main__':
